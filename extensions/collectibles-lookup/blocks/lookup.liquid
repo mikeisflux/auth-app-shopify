@@ -1,0 +1,169 @@
+{% comment %}
+  Collectibles Serial Number Lookup Block
+{% endcomment %}
+
+<div class="collectibles-lookup-wrapper" style="padding: 40px 20px; max-width: 800px; margin: 0 auto;">
+  <div class="collectibles-lookup-container" style="background: #f9f9f9; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    
+    {% if block.settings.heading != blank %}
+      <h2 style="margin-bottom: 10px; font-size: 28px; font-weight: bold; text-align: center;">
+        {{ block.settings.heading }}
+      </h2>
+    {% endif %}
+
+    {% if block.settings.subheading != blank %}
+      <p style="margin-bottom: 25px; color: #666; text-align: center; font-size: 16px;">
+        {{ block.settings.subheading }}
+      </p>
+    {% endif %}
+
+    <div class="lookup-form" style="margin-bottom: 20px;">
+      <div style="display: flex; gap: 10px; max-width: 600px; margin: 0 auto;">
+        <input 
+          type="text" 
+          id="serial-number-input-{{ block.id }}" 
+          placeholder="Enter serial number"
+          style="flex: 1; padding: 12px 16px; border: 2px solid #ddd; border-radius: 6px; font-size: 16px;"
+        />
+        <button 
+          id="verify-button-{{ block.id }}" 
+          style="padding: 12px 30px; background: {{ block.settings.button_color }}; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer;"
+        >
+          {{ block.settings.button_text | default: "Verify" }}
+        </button>
+      </div>
+    </div>
+
+    <div id="loading-{{ block.id }}" style="display: none; text-align: center; padding: 20px;">
+      <p style="color: #666;">Verifying...</p>
+    </div>
+
+    <div id="result-container-{{ block.id }}" style="display: none; margin-top: 30px;"></div>
+
+    <div id="error-container-{{ block.id }}" style="display: none; margin-top: 20px; padding: 15px; background: #fee; border-left: 4px solid #c00; border-radius: 4px;">
+      <p style="color: #c00; margin: 0; font-weight: bold;">Error</p>
+      <p id="error-message-{{ block.id }}" style="color: #666; margin: 5px 0 0 0;"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const blockId = '{{ block.id }}';
+  const input = document.getElementById('serial-number-input-' + blockId);
+  const button = document.getElementById('verify-button-' + blockId);
+  const loading = document.getElementById('loading-' + blockId);
+  const resultContainer = document.getElementById('result-container-' + blockId);
+  const errorContainer = document.getElementById('error-container-' + blockId);
+  const errorMessage = document.getElementById('error-message-' + blockId);
+
+  async function verifySerialNumber() {
+    const serialNumber = input.value.trim();
+    
+    if (!serialNumber) {
+      showError('Please enter a serial number');
+      return;
+    }
+
+    resultContainer.style.display = 'none';
+    errorContainer.style.display = 'none';
+    loading.style.display = 'block';
+    button.disabled = true;
+
+    try {
+      const response = await fetch('/apps/collectibles/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ serial_number: serialNumber })
+      });
+
+      const data = await response.json();
+      
+      loading.style.display = 'none';
+      button.disabled = false;
+
+      if (response.ok && data.item) {
+        displayResult(data.item);
+      } else {
+        showError(data.error || 'Serial number not found');
+      }
+    } catch (error) {
+      loading.style.display = 'none';
+      button.disabled = false;
+      showError('An error occurred. Please try again later.');
+    }
+  }
+
+  function displayResult(item) {
+    const html = `
+      <div style="background: white; padding: 25px; border-radius: 8px;">
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+          ${item.image_url ? `
+            <div style="flex: 0 0 200px;">
+              <img src="${item.image_url}" alt="${item.name}" style="width: 100%; border-radius: 6px;"/>
+            </div>
+          ` : ''}
+          <div style="flex: 1; min-width: 250px;">
+            <div style="padding: 6px 12px; background: #4caf50; color: white; border-radius: 4px; display: inline-block; margin-bottom: 15px;">
+              ✓ VERIFIED AUTHENTIC
+            </div>
+            <h3 style="margin: 0 0 10px 0; font-size: 24px;">${item.name}</h3>
+            <p style="margin: 0 0 8px 0; color: #666;"><strong>Serial:</strong> ${item.serial_number}</p>
+            <p style="margin: 0 0 8px 0; color: #666;"><strong>Category:</strong> ${item.category_name}</p>
+            ${item.description ? `<p style="margin: 15px 0 0 0;">${item.description}</p>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+    
+    resultContainer.innerHTML = html;
+    resultContainer.style.display = 'block';
+  }
+
+  function showError(message) {
+    errorMessage.textContent = message;
+    errorContainer.style.display = 'block';
+  }
+
+  button.addEventListener('click', verifySerialNumber);
+  input.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      verifySerialNumber();
+    }
+  });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Collectibles Lookup",
+  "target": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Verify Your Collectible"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Enter the serial number to verify authenticity"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button Text",
+      "default": "Verify"
+    },
+    {
+      "type": "color",
+      "id": "button_color",
+      "label": "Button Color",
+      "default": "#000000"
+    }
+  ]
+}
+{% endschema %}
