@@ -1,4 +1,4 @@
-import { query } from '../db/connection.server.js';
+import { query } from "../../db/connection.server.js";
 
 export const CategoryModel = {
   async findAll(shopDomain, includeInactive = false) {

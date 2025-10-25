@@ -16,9 +16,9 @@ import {
   Text,
   Thumbnail
 } from "@shopify/polaris";
-import { authenticate } from "../../shopify.server";
-import { ItemModel } from "../../models/item.server";
-import { CategoryModel } from "../../models/category.server";
+import { authenticate } from "../shopify.server";
+import { ItemModel } from "../models/item.server";
+import { CategoryModel } from "../models/category.server";
 
 export const loader = async ({ request, params }) => {
   const { session } = await authenticate.admin(request);

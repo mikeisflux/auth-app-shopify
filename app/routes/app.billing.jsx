@@ -1,268 +1,171 @@
-// Create New Item Form with Image Upload
-import { json, redirect, unstable_parseMultipartFormData } from "@remix-run/node";
-import { useLoaderData, useActionData, useNavigate, Form } from "@remix-run/react";
-import { useState } from "react";
+import { json, redirect } from "@remix-run/node";
+import { useLoaderData, useActionData, Form } from "@remix-run/react";
 import {
   Page,
+  Layout,
   Card,
-  FormLayout,
-  TextField,
-  Button,
-  BlockStack,
-  Banner,
-  DropZone,
-  Thumbnail,
   Text,
-  InlineStack
+  BlockStack,
+  InlineStack,
+  Button,
+  Banner,
+  Badge
 } from "@shopify/polaris";
-import { authenticate } from "../../shopify.server";
-import { ItemModel } from "../../models/item.server";
-import { CategoryModel } from "../../models/category.server";
-import { ShopifyFilesService } from "../../services/shopify-files.server";
+import { authenticate } from "../shopify.server";
+import { BillingService, PLANS } from "../services/billing.server";
 
-export const loader = async ({ request, params }) => {
+export const loader = async ({ request }) => {
   const { session } = await authenticate.admin(request);
-  const shopDomain = session.shop;
-  const { categoryId } = params;
+  const billingService = new BillingService(session);
+  const subscription = await billingService.checkSubscription();
+  const url = new URL(request.url);
 
-  const category = await CategoryModel.findById(categoryId, shopDomain);
-  
-  if (!category) {
-    throw new Response("Category not found", { status: 404 });
-  }
-
-  return json({ category });
+  return json({
+    subscription,
+    plans: Object.values(PLANS),
+    cancelled: url.searchParams.get("cancelled") === "1",
+    activated: url.searchParams.get("activated") === "1",
+    callbackError: url.searchParams.get("error")
+  });
 };
 
-export const action = async ({ request, params }) => {
+export const action = async ({ request }) => {
   const { session } = await authenticate.admin(request);
-  const shopDomain = session.shop;
-  const { categoryId } = params;
-
+  const billingService = new BillingService(session);
   const formData = await request.formData();
-  const name = formData.get("name");
-  const description = formData.get("description");
-  const serialNumber = formData.get("serialNumber");
-  const imageData = formData.get("imageData"); // Base64 image
+  const intent = formData.get("intent");
 
-  // Validation
-  if (!name || name.trim().length === 0) {
-    return json({ error: "Item name is required" }, { status: 400 });
-  }
+  try {
+    if (intent === "subscribe") {
+      const planName = formData.get("plan");
+      if (!planName) {
+        throw new Error("Please choose a plan to continue.");
+      }
 
-  if (!serialNumber || serialNumber.trim().length === 0) {
-    return json({ error: "Serial number is required" }, { status: 400 });
-  }
+      const { confirmationUrl } = await billingService.createCharge(planName);
+      return redirect(confirmationUrl);
+    }
 
-  // Check if serial number already exists
-  const exists = await ItemModel.serialNumberExists(
-    serialNumber.trim(),
-    shopDomain
-  );
-
-  if (exists) {
+    if (intent === "cancel") {
+      await billingService.cancelSubscription();
+      return redirect("/app/billing?cancelled=1");
+    }
+  } catch (error) {
+    console.error("Billing action failed:", error);
     return json({
-      error: "This serial number already exists. Please use a unique serial number."
+      error: error.message || "Unable to process billing request."
     }, { status: 400 });
   }
 
-  let imageUrl = null;
-  let shopifyFileId = null;
-
-  // Upload image if provided
-  if (imageData && imageData !== "null") {
-    try {
-      const filesService = new ShopifyFilesService(session);
-      const buffer = ShopifyFilesService.base64ToBuffer(imageData);
-      
-      // Validate image size
-      if (!ShopifyFilesService.validateImage(buffer, 10)) {
-        return json({
-          error: "Image is too large. Maximum size is 10MB."
-        }, { status: 400 });
-      }
-
-      const result = await filesService.uploadImage(
-        buffer,
-        `${serialNumber}.jpg`,
-        "image/jpeg"
-      );
-
-      imageUrl = result.url;
-      shopifyFileId = result.fileId;
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      return json({
-        error: "Failed to upload image. Please try again."
-      }, { status: 500 });
-    }
-  }
-
-  try {
-    await ItemModel.create(shopDomain, {
-      categoryId,
-      name: name.trim(),
-      description: description?.trim() || null,
-      serialNumber: serialNumber.trim(),
-      imageUrl,
-      shopifyFileId,
-      additionalInfo: {}
-    });
-
-    return redirect(`/app/categories/${categoryId}/items`);
-  } catch (error) {
-    console.error("Error creating item:", error);
-    return json({
-      error: "Failed to create item. Please try again."
-    }, { status: 500 });
-  }
+  return json({ error: "Unsupported action." }, { status: 400 });
 };
 
-export default function NewItem() {
-  const { category } = useLoaderData();
+export default function Billing() {
+  const { subscription, plans, cancelled, activated, callbackError } = useLoaderData();
   const actionData = useActionData();
-  const navigate = useNavigate();
 
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [serialNumber, setSerialNumber] = useState("");
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
-
-  const handleDropZoneDrop = (_dropFiles, acceptedFiles, _rejectedFiles) => {
-    const file = acceptedFiles[0];
-    if (file) {
-      setImageFile(file);
-      
-      // Create preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleRemoveImage = () => {
-    setImageFile(null);
-    setImagePreview(null);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("description", description);
-    formData.append("serialNumber", serialNumber);
-    
-    if (imagePreview) {
-      formData.append("imageData", imagePreview);
-    }
-
-    // Submit using native form submission
-    const form = e.target;
-    const response = await fetch(form.action, {
-      method: "POST",
-      body: formData,
-    });
-
-    if (response.ok) {
-      navigate(`/app/categories/${category.id}/items`);
-    }
-  };
-
-  const fileUpload = !imageFile && (
-    <DropZone.FileUpload actionHint="Accepts .jpg and .png files" />
-  );
+  const hasActiveSubscription = subscription.hasActiveSubscription;
+  const activePlan = hasActiveSubscription
+    ? BillingService.getPlanDetails(subscription.plan)
+    : null;
 
   return (
-    <Page
-      title={`Add Item to ${category.name}`}
-      backAction={{
-        content: "Back to Items",
-        onAction: () => navigate(`/app/categories/${category.id}/items`)
-      }}
-    >
-      <Form method="post" onSubmit={handleSubmit}>
-        <BlockStack gap="500">
-          {actionData?.error && (
-            <Banner status="critical">
-              <p>{actionData.error}</p>
-            </Banner>
-          )}
+    <Page title="Manage Subscription">
+      <BlockStack gap="500">
+        {cancelled && (
+          <Banner status="success">
+            <p>Your subscription was cancelled successfully.</p>
+          </Banner>
+        )}
 
-          <Card>
-            <FormLayout>
-              <TextField
-                label="Item Name"
-                name="name"
-                value={name}
-                onChange={setName}
-                placeholder="e.g., Rare Trading Card #42"
-                requiredIndicator
-                autoComplete="off"
-              />
+        {actionData?.error && (
+          <Banner status="critical">
+            <p>{actionData.error}</p>
+          </Banner>
+        )}
 
-              <TextField
-                label="Serial Number"
-                name="serialNumber"
-                value={serialNumber}
-                onChange={setSerialNumber}
-                placeholder="e.g., ABC-12345-XYZ"
-                requiredIndicator
-                helpText="This unique identifier will be used for customer verification"
-                autoComplete="off"
-              />
+        {callbackError && (
+          <Banner status="critical">
+            <p>We couldn&apos;t finalize your subscription. Please try again.</p>
+          </Banner>
+        )}
 
-              <TextField
-                label="Description"
-                name="description"
-                value={description}
-                onChange={setDescription}
-                placeholder="Optional description of this item"
-                multiline={4}
-                autoComplete="off"
-              />
+        {activated && (
+          <Banner status="success">
+            <p>Your subscription is now active. Thank you!</p>
+          </Banner>
+        )}
 
-              <BlockStack gap="300">
-                <Text variant="headingSm">Image</Text>
-                
-                {imagePreview ? (
-                  <BlockStack gap="300">
-                    <Thumbnail
-                      source={imagePreview}
-                      alt={name || "Item image"}
-                      size="large"
-                    />
-                    <Button onClick={handleRemoveImage} tone="critical">
-                      Remove Image
-                    </Button>
+        {hasActiveSubscription && activePlan && (
+          <Banner status="success">
+            <p>
+              You are currently on the <strong>{activePlan.displayName}</strong> plan.
+            </p>
+          </Banner>
+        )}
+
+        <Layout>
+          {plans.map((plan) => {
+            const isActive = hasActiveSubscription && plan.name === subscription.plan;
+
+            return (
+              <Layout.Section key={plan.name} variant="oneThird">
+                <Card>
+                  <BlockStack gap="400">
+                    <BlockStack gap="200">
+                      <InlineStack align="space-between" blockAlign="center">
+                        <Text variant="headingMd" as="h2">
+                          {plan.displayName}
+                        </Text>
+                        {isActive && <Badge tone="success">Current Plan</Badge>}
+                      </InlineStack>
+                      <Text variant="headingXl" as="p">
+                        ${plan.price.toFixed(2)} / month
+                      </Text>
+                      <Text tone="subdued">{plan.description}</Text>
+                      <Text tone="subdued">
+                        Includes up to {plan.categoryLimit === 999999 ? "unlimited" : plan.categoryLimit}{" "}
+                        categories.
+                      </Text>
+                    </BlockStack>
+
+                    <Form method="post">
+                      <input type="hidden" name="intent" value="subscribe" />
+                      <input type="hidden" name="plan" value={plan.name} />
+                      <Button
+                        submit
+                        variant="primary"
+                        disabled={isActive}
+                      >
+                        {isActive ? "Selected" : "Select Plan"}
+                      </Button>
+                    </Form>
                   </BlockStack>
-                ) : (
-                  <DropZone
-                    accept="image/*"
-                    type="image"
-                    onDrop={handleDropZoneDrop}
-                    allowMultiple={false}
-                  >
-                    {fileUpload}
-                  </DropZone>
-                )}
-              </BlockStack>
+                </Card>
+              </Layout.Section>
+            );
+          })}
+        </Layout>
 
-              <InlineStack gap="300">
-                <Button submit variant="primary">
-                  Create Item
+        {hasActiveSubscription && (
+          <Card>
+            <BlockStack gap="300">
+              <Text variant="headingMd" as="h2">
+                Need to cancel?
+              </Text>
+              <Text tone="subdued">
+                Cancelling will immediately disable category creation beyond the free tier limits.
+              </Text>
+              <Form method="post">
+                <input type="hidden" name="intent" value="cancel" />
+                <Button submit tone="critical">
+                  Cancel Subscription
                 </Button>
-                <Button onClick={() => navigate(`/app/categories/${category.id}/items`)}>
-                  Cancel
-                </Button>
-              </InlineStack>
-            </FormLayout>
+              </Form>
+            </BlockStack>
           </Card>
-        </BlockStack>
-      </Form>
+        )}
+      </BlockStack>
     </Page>
   );
 }

@@ -1,10 +1,10 @@
 // Shopify Files API service - handles image uploads to merchant's store
-import { shopifyApi } from "@shopify/shopify-api";
+import shopify from "../shopify.server";
 
 export class ShopifyFilesService {
   constructor(session) {
     this.session = session;
-    this.client = new shopifyApi.clients.Graphql({ session });
+    this.client = new shopify.api.clients.Graphql({ session });
   }
 
   /**

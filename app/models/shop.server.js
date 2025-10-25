@@ -1,5 +1,5 @@
 // Shop model - handles merchant store data
-import { query } from '../db/connection.server.js';
+import { query } from "../../db/connection.server.js";
 
 export const ShopModel = {
   // Find shop by domain
