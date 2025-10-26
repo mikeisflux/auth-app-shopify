@@ -53,6 +53,9 @@ app.get(
   }
 );
 
+// Exit iframe route for embedded app
+app.get(shopify.config.exitIframePath, shopify.exitIframe());
+
 // Webhooks
 app.post(shopify.config.webhooks.path, shopify.processWebhooks({ webhookHandlers: {
   APP_UNINSTALLED: {
@@ -65,11 +68,11 @@ app.post(shopify.config.webhooks.path, shopify.processWebhooks({ webhookHandlers
   }
 }}));
 
-// Middleware to validate authenticated session
-const validateSession = shopify.validateAuthenticatedSession();
+// Middleware for browser-based routes
+const ensureInstalled = shopify.ensureInstalledOnShop();
 
 // Dashboard
-app.get('/', validateSession, async (req, res) => {
+app.get('/', ensureInstalled, async (req, res) => {
   try {
     const session = res.locals.shopify.session;
     const shopDomain = session.shop;
@@ -103,12 +106,12 @@ app.get('/', validateSession, async (req, res) => {
   }
 });
 
-app.get('/app', validateSession, (req, res) => {
+app.get('/app', ensureInstalled, (req, res) => {
   res.redirect(`/?shop=${req.query.shop}&host=${req.query.host || ''}`);
 });
 
 // Categories
-app.get('/app/categories', validateSession, async (req, res) => {
+app.get('/app/categories', ensureInstalled, async (req, res) => {
   try {
     const session = res.locals.shopify.session;
     const categories = await CategoryModel.findAll(session.shop);
@@ -124,7 +127,7 @@ app.get('/app/categories', validateSession, async (req, res) => {
   }
 });
 
-app.get('/app/categories/new', validateSession, (req, res) => {
+app.get('/app/categories/new', ensureInstalled, (req, res) => {
   res.render('category-form', {
     category: null,
     isEdit: false,
@@ -133,7 +136,7 @@ app.get('/app/categories/new', validateSession, (req, res) => {
   });
 });
 
-app.post('/app/categories', validateSession, async (req, res) => {
+app.post('/app/categories', ensureInstalled, async (req, res) => {
   try {
     const session = res.locals.shopify.session;
     const { name, description, displayOrder } = req.body;
@@ -151,7 +154,7 @@ app.post('/app/categories', validateSession, async (req, res) => {
   }
 });
 
-app.get('/app/categories/:categoryId/items', validateSession, async (req, res) => {
+app.get('/app/categories/:categoryId/items', ensureInstalled, async (req, res) => {
   try {
     const session = res.locals.shopify.session;
     const { categoryId } = req.params;
@@ -176,7 +179,7 @@ app.get('/app/categories/:categoryId/items', validateSession, async (req, res) =
 });
 
 // Billing
-app.get('/app/billing', validateSession, async (req, res) => {
+app.get('/app/billing', ensureInstalled, async (req, res) => {
   try {
     const session = res.locals.shopify.session;
     const subscription = await ShopModel.getSubscription(session.shop);
@@ -195,7 +198,7 @@ app.get('/app/billing', validateSession, async (req, res) => {
   }
 });
 
-app.post('/api/billing/select-plan', validateSession, async (req, res) => {
+app.post('/api/billing/select-plan', ensureInstalled, async (req, res) => {
   try {
     const session = res.locals.shopify.session;
     const { plan } = req.body;
@@ -213,7 +216,7 @@ app.post('/api/billing/select-plan', validateSession, async (req, res) => {
   }
 });
 
-app.post('/api/billing/cancel', validateSession, async (req, res) => {
+app.post('/api/billing/cancel', ensureInstalled, async (req, res) => {
   try {
     const session = res.locals.shopify.session;
     const billingService = new BillingService(session);
@@ -226,7 +229,7 @@ app.post('/api/billing/cancel', validateSession, async (req, res) => {
   }
 });
 
-app.get('/api/billing/callback', validateSession, (req, res) => {
+app.get('/api/billing/callback', ensureInstalled, (req, res) => {
   res.redirect(`/app/billing?shop=${req.query.shop}&host=${req.query.host || ''}`);
 });
 
