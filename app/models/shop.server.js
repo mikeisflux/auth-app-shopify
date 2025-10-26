@@ -14,19 +14,19 @@ export const ShopModel = {
   // Create or update shop
   async upsert(shopData) {
     const { shopDomain, accessToken, scope } = shopData;
-    
+
     const result = await query(
-      `INSERT INTO shops (shop_domain, access_token, scope)
-       VALUES ($1, $2, $3)
-       ON CONFLICT (shop_domain) 
-       DO UPDATE SET 
+      `INSERT INTO shops (shop_domain, access_token, scope, created_at, updated_at)
+       VALUES ($1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+       ON CONFLICT (shop_domain)
+       DO UPDATE SET
          access_token = EXCLUDED.access_token,
          scope = EXCLUDED.scope,
          updated_at = CURRENT_TIMESTAMP
        RETURNING *`,
       [shopDomain, accessToken, scope]
     );
-    
+
     return result.rows[0];
   },
 
