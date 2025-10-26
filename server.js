@@ -73,6 +73,56 @@ app.post(shopify.config.webhooks.path, shopify.processWebhooks({ webhookHandlers
   }
 }}));
 
+// GDPR Webhooks (required for public apps)
+app.post('/webhooks/customers/data_request', async (req, res) => {
+  try {
+    const { shop_domain } = req.body;
+    console.log('Customer data request received for shop:', shop_domain);
+
+    // TODO: Implement customer data export
+    // You must provide customer data within 30 days
+    // This should gather all data associated with customers from this shop
+
+    res.status(200).json({ success: true, message: 'Data request received' });
+  } catch (error) {
+    console.error('Customer data request error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/webhooks/customers/redact', async (req, res) => {
+  try {
+    const { shop_domain, customer } = req.body;
+    console.log('Customer redaction request for shop:', shop_domain, 'customer:', customer.id);
+
+    // TODO: Implement customer data deletion
+    // You must delete customer data within 30 days
+    // This should remove all customer-specific data from verification_logs
+
+    res.status(200).json({ success: true, message: 'Redaction request received' });
+  } catch (error) {
+    console.error('Customer redaction error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/webhooks/shop/redact', async (req, res) => {
+  try {
+    const { shop_domain } = req.body;
+    console.log('Shop redaction request for shop:', shop_domain);
+
+    // TODO: Implement shop data deletion
+    // You must delete shop data within 48 hours after app uninstall
+    // This should remove all data associated with the shop
+    await ShopModel.markUninstalled(shop_domain);
+
+    res.status(200).json({ success: true, message: 'Shop data will be deleted' });
+  } catch (error) {
+    console.error('Shop redaction error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Custom middleware for embedded apps - just verify shop query param
 const ensureInstalled = async (req, res, next) => {
   try {
