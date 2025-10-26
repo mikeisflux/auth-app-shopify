@@ -4,11 +4,16 @@
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       console.log('Initializing App Bridge...');
-      console.log('window.shopify available:', !!window.shopify);
+      console.log('window.shopify:', window.shopify);
+      console.log('window.shopify keys:', window.shopify ? Object.keys(window.shopify) : 'undefined');
+      console.log('window["app-bridge"]:', window['app-bridge']);
 
-      if (window.shopify) {
+      // Try the modern App Bridge API
+      const AppBridge = window['app-bridge'];
+
+      if (AppBridge && AppBridge.createApp) {
         try {
-          const app = window.shopify.createApp({
+          const app = AppBridge.createApp({
             apiKey: '<%= apiKey %>',
             host: '<%= host %>',
             forceRedirect: true
@@ -18,26 +23,17 @@
           window.appBridge = {
             app: app,
             redirect: function(path) {
-              const redirect = window.shopify.Redirect.create(app);
-              redirect.dispatch(window.shopify.Redirect.Action.APP, path);
-            },
-            showToast: function(message, isError = false) {
-              const toastOptions = {
-                message: message,
-                duration: 5000,
-                isError: isError
-              };
-              const toast = window.shopify.Toast.create(app, toastOptions);
-              toast.dispatch(window.shopify.Toast.Action.SHOW);
+              const Redirect = AppBridge.actions.Redirect;
+              app.dispatch(Redirect.create(app, {url: path}));
             }
           };
 
-          console.log('App Bridge initialized successfully');
+          console.log('App Bridge initialized successfully with modern API');
         } catch (error) {
           console.error('App Bridge initialization error:', error);
         }
       } else {
-        console.error('Shopify App Bridge not loaded - window.shopify is undefined');
+        console.error('App Bridge not available. Available globals:', Object.keys(window).filter(k => k.toLowerCase().includes('app') || k.toLowerCase().includes('shop')));
       }
     });
   </script>
