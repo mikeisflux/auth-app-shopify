@@ -88,8 +88,22 @@ async function handleItemSubmit(event) {
   const form = event.target;
   const formData = new FormData(form);
 
+  // Add shop and host params to the action URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const shop = urlParams.get('shop');
+  const host = urlParams.get('host');
+
+  let actionUrl = form.action;
+  if (shop) {
+    const separator = actionUrl.includes('?') ? '&' : '?';
+    actionUrl += `${separator}shop=${encodeURIComponent(shop)}`;
+    if (host) {
+      actionUrl += `&host=${encodeURIComponent(host)}`;
+    }
+  }
+
   try {
-    const response = await fetch(form.action, {
+    const response = await fetch(actionUrl, {
       method: form.method,
       body: formData
     });
@@ -106,6 +120,7 @@ async function handleItemSubmit(event) {
       showToast('Error saving item: ' + result.error, true);
     }
   } catch (error) {
+    console.error('Item submit error:', error);
     showToast('Error saving item', true);
   }
 }
