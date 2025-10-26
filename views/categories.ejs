@@ -1,3 +1,4 @@
+<%- include('header') %>
 <div class="Polaris-Page">
   <div class="Polaris-Page-Header">
     <div class="Polaris-Page-Header__Row">
@@ -94,11 +95,5 @@
 </div>
 
 <script>
-  function navigate(path) {
-    if (window.appBridge) {
-      window.appBridge.redirect(path);
-    } else {
-      window.location.href = path;
-    }
-  }
-</script>
+
+<%- include('footer') %>

@@ -1,5 +1,19 @@
-// Global navigation helper
+// Global navigation helper - preserves shop and host params
 function navigate(path) {
+  // Get current shop and host from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const shop = urlParams.get('shop');
+  const host = urlParams.get('host');
+
+  // Add shop and host to the path if they exist
+  if (shop) {
+    const separator = path.includes('?') ? '&' : '?';
+    path += `${separator}shop=${encodeURIComponent(shop)}`;
+    if (host) {
+      path += `&host=${encodeURIComponent(host)}`;
+    }
+  }
+
   if (window.appBridge && window.appBridge.redirect) {
     window.appBridge.redirect(path);
   } else {
