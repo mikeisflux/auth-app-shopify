@@ -1,0 +1,30 @@
+{
+  "name": "auth-app-shopify",
+  "private": true,
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "scripts": {
+    "dev": "remix dev",
+    "build": "remix build",
+    "start": "remix-serve ./build/index.js",
+    "migrate": "node ./scripts/migrate.js"
+  },
+  "dependencies": {
+    "@remix-run/node": "^2.8.1",
+    "@remix-run/react": "^2.8.1",
+    "@remix-run/serve": "^2.8.1",
+    "@shopify/polaris": "^13.9.5",
+    "@shopify/shopify-api": "^12.0.0",
+    "@shopify/shopify-app-remix": "^2.4.0",
+    "@shopify/shopify-app-session-storage-postgresql": "^5.0.1",
+    "dotenv": "^16.4.5",
+    "isbot": "^5.1.6",
+    "pg": "^8.11.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@remix-run/dev": "^2.8.1"
+  }
+}

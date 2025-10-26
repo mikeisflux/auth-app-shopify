@@ -1,0 +1,38 @@
+collectible-tracker/
+├── app/
+│   ├── routes/
+│   │   ├── app._index.jsx (Dashboard)
+│   │   ├── app.categories._index.jsx (Categories List)
+│   │   ├── app.categories.new.jsx (Create Category)
+│   │   ├── app.categories.$categoryId.items.jsx (Items List)
+│   │   ├── app.categories.$categoryId.items.new.jsx (Create Item)
+│   │   ├── app.billing.jsx (Subscription Management)
+│   │   ├── app.proxy.verify.jsx (Verification API)
+│   │   └── webhooks.jsx (GDPR Webhooks)
+│   ├── models/
+│   │   ├── shop.server.js
+│   │   ├── category.server.js
+│   │   └── item.server.js
+│   ├── services/
+│   │   ├── billing.server.js
+│   │   └── shopify-files.server.js
+│   ├── db/
+│   │   └── connection.server.js
+│   └── shopify.server.js
+├── extensions/
+│   └── collectibles-lookup/
+│       ├── blocks/lookup.liquid
+│       └── shopify.extension.toml
+├── database/
+│   └── schema.sql
+├── scripts/
+│   └── migrate.js
+├── docs/
+│   ├── PRIVACY_POLICY.md
+│   ├── TERMS_OF_SERVICE.md
+│   ├── DEPLOYMENT_GUIDE.md
+│   └── SETUP_CHECKLIST.md
+├── shopify.app.toml
+├── package.json
+├── .env.template
+└── README.md

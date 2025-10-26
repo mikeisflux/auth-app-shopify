@@ -1,0 +1,29 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+name = "verify-my-collectible"
+client_id = "YOUR_CLIENT_ID_HERE"
+application_url = "https://verifymycollectible.com"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+dev_store_url = "YOUR_DEV_STORE.myshopify.com"
+
+[access_scopes]
+scopes = "write_products,read_customers,write_files"
+
+[auth]
+redirect_urls = [
+  "https://verifymycollectible.com/auth/callback",
+  "https://verifymycollectible.com/auth/shopify/callback",
+  "https://verifymycollectible.com/api/auth/callback"
+]
+
+[webhooks]
+api_version = "2024-10"
+
+[pos]
+embedded = false
+
+[[pos.embedded_paths]]
+url = "https://verifymycollectible.com"
