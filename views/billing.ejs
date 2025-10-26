@@ -120,7 +120,17 @@
 
   async function selectPlan(planName) {
     try {
-      const response = await fetch('/api/billing/select-plan', {
+      // Get shop and host from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const shop = urlParams.get('shop');
+      const host = urlParams.get('host');
+
+      let url = `/api/billing/select-plan?shop=${encodeURIComponent(shop)}`;
+      if (host) {
+        url += `&host=${encodeURIComponent(host)}`;
+      }
+
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -152,7 +162,17 @@
     }
 
     try {
-      const response = await fetch('/api/billing/cancel', {
+      // Get shop and host from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const shop = urlParams.get('shop');
+      const host = urlParams.get('host');
+
+      let url = `/api/billing/cancel?shop=${encodeURIComponent(shop)}`;
+      if (host) {
+        url += `&host=${encodeURIComponent(host)}`;
+      }
+
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -172,5 +192,13 @@
     }
   }
 
+  function showToast(message, isError = false) {
+    if (window.shopifyToast) {
+      window.shopifyToast(message, isError);
+    } else {
+      console.log(isError ? 'ERROR:' : 'INFO:', message);
+    }
+  }
+</script>
 
 <%- include('footer') %>
