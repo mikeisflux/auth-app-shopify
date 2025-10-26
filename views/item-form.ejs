@@ -24,7 +24,7 @@
       <div class="Polaris-Layout__Section">
         <div class="Polaris-Card">
           <div class="Polaris-Card__Section">
-            <form id="item-form" action="/app/categories/<%= category.id %>/items" method="POST" enctype="multipart/form-data" data-category-id="<%= category.id %>">
+            <form id="item-form" action="/app/categories/<%= category.id %>/items<%= isEdit ? '/' + item.id : '' %>" method="POST" enctype="multipart/form-data" data-category-id="<%= category.id %>" data-is-edit="<%= isEdit %>">
               <div class="Polaris-FormLayout">
                 <div class="Polaris-FormLayout__Item">
                   <label class="Polaris-Label" for="name">

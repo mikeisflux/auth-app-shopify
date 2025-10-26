@@ -294,6 +294,38 @@ app.get('/app/categories/:categoryId/items/new', ensureInstalled, async (req, re
   }
 });
 
+app.get('/app/categories/:categoryId/items/:itemId/edit', ensureInstalled, async (req, res) => {
+  try {
+    const shopDomain = req.query.shop;
+    if (!shopDomain) {
+      return res.status(400).send('Missing shop parameter');
+    }
+
+    const { categoryId, itemId } = req.params;
+    const category = await CategoryModel.findById(categoryId, shopDomain);
+    const item = await ItemModel.findById(itemId, shopDomain);
+
+    if (!category) {
+      return res.status(404).send('Category not found');
+    }
+
+    if (!item) {
+      return res.status(404).send('Item not found');
+    }
+
+    res.render('item-form', {
+      category,
+      item,
+      isEdit: true,
+      host: req.query.host || '',
+      apiKey: process.env.SHOPIFY_API_KEY
+    });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).send('Error: ' + error.message);
+  }
+});
+
 app.post('/app/categories/:categoryId/items', ensureInstalled, upload.single('image'), async (req, res) => {
   try {
     const shopDomain = req.query.shop;
@@ -367,6 +399,90 @@ app.post('/app/categories/:categoryId/items', ensureInstalled, upload.single('im
     });
   } catch (error) {
     console.error('Error creating item:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/app/categories/:categoryId/items/:itemId', ensureInstalled, upload.single('image'), async (req, res) => {
+  try {
+    const shopDomain = req.query.shop;
+    if (!shopDomain) {
+      return res.status(400).json({ success: false, error: 'Missing shop parameter' });
+    }
+
+    const { categoryId, itemId } = req.params;
+    const { name, serialNumber, description, isActive } = req.body;
+
+    // Handle image upload to Shopify Files
+    let imageUrl = null;
+    let shopifyFileId = null;
+    let uploadWarning = null;
+
+    if (req.file) {
+      try {
+        console.log('📤 Uploading file to Shopify:', {
+          filename: req.file.originalname,
+          size: req.file.size,
+          mimetype: req.file.mimetype
+        });
+
+        // Load session from storage
+        const sessionId = shopify.api.session.getOfflineId(shopDomain);
+        const session = await shopify.config.sessionStorage.loadSession(sessionId);
+
+        if (!session) {
+          console.error('❌ No session found for shop:', shopDomain);
+          return res.status(401).json({ success: false, error: 'No session found. Please reinstall the app.' });
+        }
+
+        console.log('✓ Session loaded for shop:', shopDomain);
+
+        // Upload file to Shopify
+        const fileUploadService = new FileUploadService(session);
+        const uploadResult = await fileUploadService.uploadFile(
+          req.file.buffer,
+          req.file.originalname,
+          req.file.mimetype
+        );
+
+        imageUrl = uploadResult.url;
+        shopifyFileId = uploadResult.id;
+
+        console.log('✅ File uploaded successfully:', { imageUrl, shopifyFileId });
+      } catch (uploadError) {
+        console.error('❌ Error uploading file to Shopify:', uploadError.message);
+        console.error('Full error:', uploadError);
+        uploadWarning = `Image upload failed: ${uploadError.message}`;
+      }
+    }
+
+    // Update the item
+    const updateData = {
+      name,
+      serialNumber,
+      description,
+      isActive: isActive === 'on' || isActive === 'true'
+    };
+
+    // Only update image fields if a new image was uploaded
+    if (imageUrl) {
+      updateData.imageUrl = imageUrl;
+      updateData.shopifyFileId = shopifyFileId;
+    }
+
+    const item = await ItemModel.update(itemId, shopDomain, updateData);
+
+    if (!item) {
+      return res.status(404).json({ success: false, error: 'Item not found' });
+    }
+
+    res.json({
+      success: true,
+      item,
+      warning: uploadWarning
+    });
+  } catch (error) {
+    console.error('Error updating item:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });

@@ -59,6 +59,7 @@
                       <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header">Serial Number</th>
                       <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header">Status</th>
                       <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header">Created</th>
+                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -82,6 +83,13 @@
                         </td>
                         <td class="Polaris-DataTable__Cell">
                           <%= new Date(item.created_at).toLocaleDateString() %>
+                        </td>
+                        <td class="Polaris-DataTable__Cell">
+                          <button type="button" class="Polaris-Button Polaris-Button--plain" onclick="navigate('/app/categories/<%= category.id %>/items/<%= item.id %>/edit')">
+                            <span class="Polaris-Button__Content">
+                              <span class="Polaris-Button__Text">Edit</span>
+                            </span>
+                          </button>
                         </td>
                       </tr>
                     <% }); %>
