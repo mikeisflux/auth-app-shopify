@@ -349,16 +349,21 @@ app.post('/app/categories/:categoryId/items', ensureInstalled, upload.single('im
           mimetype: req.file.mimetype
         });
 
-        // Load session from storage
-        const sessionId = shopify.api.session.getOfflineId(shopDomain);
-        const session = await shopify.config.sessionStorage.loadSession(sessionId);
-
-        if (!session) {
-          console.error('❌ No session found for shop:', shopDomain);
-          return res.status(401).json({ success: false, error: 'No session found. Please reinstall the app.' });
+        // Get access token from database
+        const shop = await ShopModel.findByDomain(shopDomain);
+        if (!shop || !shop.access_token) {
+          console.error('❌ No shop or access token found for:', shopDomain);
+          return res.status(401).json({ success: false, error: 'Shop not authenticated. Please reinstall the app.' });
         }
 
-        console.log('✓ Session loaded for shop:', shopDomain);
+        console.log('✓ Shop loaded:', shopDomain);
+
+        // Create a session object manually with the access token from database
+        const session = {
+          shop: shopDomain,
+          accessToken: shop.access_token,
+          scope: shop.scope
+        };
 
         // Upload file to Shopify
         const fileUploadService = new FileUploadService(session);
@@ -426,16 +431,21 @@ app.post('/app/categories/:categoryId/items/:itemId', ensureInstalled, upload.si
           mimetype: req.file.mimetype
         });
 
-        // Load session from storage
-        const sessionId = shopify.api.session.getOfflineId(shopDomain);
-        const session = await shopify.config.sessionStorage.loadSession(sessionId);
-
-        if (!session) {
-          console.error('❌ No session found for shop:', shopDomain);
-          return res.status(401).json({ success: false, error: 'No session found. Please reinstall the app.' });
+        // Get access token from database
+        const shop = await ShopModel.findByDomain(shopDomain);
+        if (!shop || !shop.access_token) {
+          console.error('❌ No shop or access token found for:', shopDomain);
+          return res.status(401).json({ success: false, error: 'Shop not authenticated. Please reinstall the app.' });
         }
 
-        console.log('✓ Session loaded for shop:', shopDomain);
+        console.log('✓ Shop loaded:', shopDomain);
+
+        // Create a session object manually with the access token from database
+        const session = {
+          shop: shopDomain,
+          accessToken: shop.access_token,
+          scope: shop.scope
+        };
 
         // Upload file to Shopify
         const fileUploadService = new FileUploadService(session);
