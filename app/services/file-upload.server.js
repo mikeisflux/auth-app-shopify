@@ -1,0 +1,219 @@
+import FormData from 'form-data';
+
+export class FileUploadService {
+  constructor(session) {
+    this.session = session;
+    this.shop = session.shop;
+    this.accessToken = session.accessToken;
+    this.apiVersion = '2024-10';
+  }
+
+  /**
+   * Upload a file to Shopify Files
+   * @param {Buffer} fileBuffer - The file buffer from multer
+   * @param {string} filename - Original filename
+   * @param {string} mimeType - MIME type of the file
+   * @returns {Promise<{url: string, id: string}>}
+   */
+  async uploadFile(fileBuffer, filename, mimeType) {
+    try {
+      // Step 1: Create staged upload
+      const stagedUpload = await this.createStagedUpload(filename, mimeType, fileBuffer.length);
+
+      if (!stagedUpload) {
+        throw new Error('Failed to create staged upload');
+      }
+
+      // Step 2: Upload file to staged URL
+      await this.uploadToStagedUrl(
+        stagedUpload.url,
+        stagedUpload.parameters,
+        fileBuffer,
+        filename,
+        mimeType
+      );
+
+      // Step 3: Create file record in Shopify
+      const fileRecord = await this.createFileRecord(stagedUpload.resourceUrl, filename);
+
+      return {
+        url: fileRecord.url,
+        id: fileRecord.id,
+        alt: fileRecord.alt
+      };
+    } catch (error) {
+      console.error('File upload error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Step 1: Create a staged upload URL
+   */
+  async createStagedUpload(filename, mimeType, fileSize) {
+    const mutation = `
+      mutation stagedUploadsCreate($input: [StagedUploadInput!]!) {
+        stagedUploadsCreate(input: $input) {
+          stagedTargets {
+            url
+            resourceUrl
+            parameters {
+              name
+              value
+            }
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+    `;
+
+    const variables = {
+      input: [{
+        resource: 'FILE',
+        filename: filename,
+        mimeType: mimeType,
+        fileSize: fileSize.toString(),
+        httpMethod: 'POST'
+      }]
+    };
+
+    const response = await this.graphqlRequest(mutation, variables);
+
+    if (response.data.stagedUploadsCreate.userErrors.length > 0) {
+      throw new Error(response.data.stagedUploadsCreate.userErrors[0].message);
+    }
+
+    const target = response.data.stagedUploadsCreate.stagedTargets[0];
+    return {
+      url: target.url,
+      resourceUrl: target.resourceUrl,
+      parameters: target.parameters
+    };
+  }
+
+  /**
+   * Step 2: Upload file to the staged URL
+   */
+  async uploadToStagedUrl(url, parameters, fileBuffer, filename, mimeType) {
+    const formData = new FormData();
+
+    // Add all parameters from Shopify
+    parameters.forEach(param => {
+      formData.append(param.name, param.value);
+    });
+
+    // Add the file
+    formData.append('file', fileBuffer, {
+      filename: filename,
+      contentType: mimeType
+    });
+
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+      headers: formData.getHeaders()
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to upload to staged URL: ${response.status} ${errorText}`);
+    }
+
+    return response;
+  }
+
+  /**
+   * Step 3: Create the file record in Shopify
+   */
+  async createFileRecord(resourceUrl, filename) {
+    const mutation = `
+      mutation fileCreate($files: [FileCreateInput!]!) {
+        fileCreate(files: $files) {
+          files {
+            ... on GenericFile {
+              id
+              url
+              alt
+            }
+            ... on MediaImage {
+              id
+              image {
+                url
+              }
+              alt
+            }
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+    `;
+
+    const variables = {
+      files: [{
+        originalSource: resourceUrl,
+        alt: filename
+      }]
+    };
+
+    const response = await this.graphqlRequest(mutation, variables);
+
+    if (response.data.fileCreate.userErrors.length > 0) {
+      throw new Error(response.data.fileCreate.userErrors[0].message);
+    }
+
+    const file = response.data.fileCreate.files[0];
+
+    // Handle different file types (GenericFile vs MediaImage)
+    if (file.image) {
+      return {
+        id: file.id,
+        url: file.image.url,
+        alt: file.alt
+      };
+    } else {
+      return {
+        id: file.id,
+        url: file.url,
+        alt: file.alt
+      };
+    }
+  }
+
+  /**
+   * Make a GraphQL request to Shopify Admin API
+   */
+  async graphqlRequest(query, variables = {}) {
+    const url = `https://${this.shop}/admin/api/${this.apiVersion}/graphql.json`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Access-Token': this.accessToken
+      },
+      body: JSON.stringify({
+        query,
+        variables
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`GraphQL request failed: ${response.status} ${errorText}`);
+    }
+
+    const result = await response.json();
+
+    if (result.errors) {
+      throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
+    }
+
+    return result;
+  }
+}

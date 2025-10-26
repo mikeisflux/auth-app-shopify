@@ -8,6 +8,7 @@ import { ShopModel } from './app/models/shop.server.js';
 import { CategoryModel } from './app/models/category.server.js';
 import { ItemModel } from './app/models/item.server.js';
 import { BillingService } from './app/services/billing.server.js';
+import { FileUploadService } from './app/services/file-upload.server.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -253,12 +254,49 @@ app.post('/app/categories/:categoryId/items', ensureInstalled, upload.single('im
     const { categoryId } = req.params;
     const { name, serialNumber, description, isActive } = req.body;
 
-    // For now, we'll skip image upload to Shopify Files and just store the item
-    // You can add Shopify Files API integration later
-    const item = await ItemModel.create(shopDomain, categoryId, {
+    // Handle image upload to Shopify Files
+    let imageUrl = null;
+    let shopifyFileId = null;
+
+    if (req.file) {
+      try {
+        console.log('Uploading file to Shopify:', req.file.originalname);
+
+        // Load session from storage
+        const sessionId = shopify.api.session.getOfflineId(shopDomain);
+        const session = await shopify.config.sessionStorage.loadSession(sessionId);
+
+        if (!session) {
+          return res.status(401).json({ success: false, error: 'No session found. Please reinstall the app.' });
+        }
+
+        // Upload file to Shopify
+        const fileUploadService = new FileUploadService(session);
+        const uploadResult = await fileUploadService.uploadFile(
+          req.file.buffer,
+          req.file.originalname,
+          req.file.mimetype
+        );
+
+        imageUrl = uploadResult.url;
+        shopifyFileId = uploadResult.id;
+
+        console.log('File uploaded successfully:', { imageUrl, shopifyFileId });
+      } catch (uploadError) {
+        console.error('Error uploading file to Shopify:', uploadError);
+        // Continue creating the item even if file upload fails
+        // We'll just not have an image
+      }
+    }
+
+    // Create the item with all data
+    const item = await ItemModel.create(shopDomain, {
+      categoryId,
       name,
       serialNumber,
       description,
+      imageUrl,
+      shopifyFileId,
       isActive: isActive === 'on' || isActive === 'true'
     });
 
