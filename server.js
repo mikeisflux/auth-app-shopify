@@ -183,6 +183,19 @@ app.get('/', async (req, res) => {
   }
 });
 
+// Public static pages (for app submission)
+app.get('/privacy', (req, res) => {
+  res.render('privacy');
+});
+
+app.get('/faq', (req, res) => {
+  res.render('faq');
+});
+
+app.get('/support', (req, res) => {
+  res.render('support');
+});
+
 app.get('/app', ensureInstalled, (req, res) => {
   res.redirect(`/?shop=${req.query.shop}&host=${req.query.host || ''}`);
 });
