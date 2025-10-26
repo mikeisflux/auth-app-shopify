@@ -71,8 +71,11 @@ const ensureInstalled = shopify.ensureInstalledOnShop();
 // Dashboard
 app.get('/', ensureInstalled, async (req, res) => {
   try {
-    const session = res.locals.shopify.session;
-    const shopDomain = session.shop;
+    // Get shop from query params (required for embedded apps)
+    const shopDomain = req.query.shop;
+    if (!shopDomain) {
+      return res.status(400).send('Missing shop parameter');
+    }
 
     const subscription = await ShopModel.getSubscription(shopDomain);
     const planDetails = subscription?.subscription_plan
@@ -110,8 +113,12 @@ app.get('/app', ensureInstalled, (req, res) => {
 // Categories
 app.get('/app/categories', ensureInstalled, async (req, res) => {
   try {
-    const session = res.locals.shopify.session;
-    const categories = await CategoryModel.findAll(session.shop);
+    const shopDomain = req.query.shop;
+    if (!shopDomain) {
+      return res.status(400).send('Missing shop parameter');
+    }
+
+    const categories = await CategoryModel.findAll(shopDomain);
 
     res.render('categories', {
       categories,
@@ -135,10 +142,14 @@ app.get('/app/categories/new', ensureInstalled, (req, res) => {
 
 app.post('/app/categories', ensureInstalled, async (req, res) => {
   try {
-    const session = res.locals.shopify.session;
+    const shopDomain = req.query.shop;
+    if (!shopDomain) {
+      return res.status(400).json({ success: false, error: 'Missing shop parameter' });
+    }
+
     const { name, description, displayOrder } = req.body;
 
-    const category = await CategoryModel.create(session.shop, {
+    const category = await CategoryModel.create(shopDomain, {
       name,
       description,
       displayOrder: displayOrder ? parseInt(displayOrder) : 0
@@ -153,15 +164,19 @@ app.post('/app/categories', ensureInstalled, async (req, res) => {
 
 app.get('/app/categories/:categoryId/items', ensureInstalled, async (req, res) => {
   try {
-    const session = res.locals.shopify.session;
+    const shopDomain = req.query.shop;
+    if (!shopDomain) {
+      return res.status(400).send('Missing shop parameter');
+    }
+
     const { categoryId } = req.params;
-    const category = await CategoryModel.findById(categoryId, session.shop);
+    const category = await CategoryModel.findById(categoryId, shopDomain);
 
     if (!category) {
       return res.status(404).send('Category not found');
     }
 
-    const result = await ItemModel.findAll(session.shop, { categoryId });
+    const result = await ItemModel.findAll(shopDomain, { categoryId });
 
     res.render('items', {
       category,
@@ -178,8 +193,12 @@ app.get('/app/categories/:categoryId/items', ensureInstalled, async (req, res) =
 // Billing
 app.get('/app/billing', ensureInstalled, async (req, res) => {
   try {
-    const session = res.locals.shopify.session;
-    const subscription = await ShopModel.getSubscription(session.shop);
+    const shopDomain = req.query.shop;
+    if (!shopDomain) {
+      return res.status(400).send('Missing shop parameter');
+    }
+
+    const subscription = await ShopModel.getSubscription(shopDomain);
     const plans = BillingService.getAvailablePlans();
 
     res.render('billing', {
@@ -197,7 +216,19 @@ app.get('/app/billing', ensureInstalled, async (req, res) => {
 
 app.post('/api/billing/select-plan', ensureInstalled, async (req, res) => {
   try {
-    const session = res.locals.shopify.session;
+    const shopDomain = req.query.shop;
+    if (!shopDomain) {
+      return res.status(400).json({ success: false, error: 'Missing shop parameter' });
+    }
+
+    // Load session from storage
+    const sessionId = shopify.api.session.getOfflineId(shopDomain);
+    const session = await shopify.config.sessionStorage.loadSession(sessionId);
+
+    if (!session) {
+      return res.status(401).json({ success: false, error: 'No session found' });
+    }
+
     const { plan } = req.body;
     const billingService = new BillingService(session);
 
@@ -215,7 +246,19 @@ app.post('/api/billing/select-plan', ensureInstalled, async (req, res) => {
 
 app.post('/api/billing/cancel', ensureInstalled, async (req, res) => {
   try {
-    const session = res.locals.shopify.session;
+    const shopDomain = req.query.shop;
+    if (!shopDomain) {
+      return res.status(400).json({ success: false, error: 'Missing shop parameter' });
+    }
+
+    // Load session from storage
+    const sessionId = shopify.api.session.getOfflineId(shopDomain);
+    const session = await shopify.config.sessionStorage.loadSession(sessionId);
+
+    if (!session) {
+      return res.status(401).json({ success: false, error: 'No session found' });
+    }
+
     const billingService = new BillingService(session);
     await billingService.cancelSubscription();
 
