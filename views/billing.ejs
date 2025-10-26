@@ -60,8 +60,8 @@
                   <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-200);">
                     <p class="Polaris-Text--root Polaris-Text--bodySm"><strong>Features:</strong></p>
                     <ul style="margin: 0; padding-left: 20px;">
-                      <li><%= plan.maxCategories %> categories</li>
-                      <li><%= plan.maxItems %> items per category</li>
+                      <li><%= plan.maxCategories === 999999 ? 'Unlimited' : plan.maxCategories %> categories</li>
+                      <li><%= plan.maxItems === 999999 ? 'Unlimited' : plan.maxItems %> items per category</li>
                       <% if (plan.features) { %>
                         <% plan.features.forEach(feature => { %>
                           <li><%= feature %></li>

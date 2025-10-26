@@ -71,8 +71,8 @@ const ensureInstalled = async (req, res, next) => {
     const shopDomain = req.query.shop;
 
     if (!shopDomain) {
-      console.log('Missing shop parameter, redirecting to auth');
-      return res.redirect(`${shopify.config.auth.path}?shop=${req.query.shop || ''}`);
+      console.log('Missing shop parameter');
+      return res.status(400).send('Missing shop parameter. Please access this app from your Shopify admin.');
     }
 
     // For embedded apps, the shop and host params are enough
@@ -81,7 +81,7 @@ const ensureInstalled = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('Middleware error:', error);
-    return res.redirect(`${shopify.config.auth.path}?shop=${req.query.shop || ''}`);
+    return res.status(500).send('Server error: ' + error.message);
   }
 };
 
@@ -198,6 +198,33 @@ app.get('/app/categories/:categoryId/items', ensureInstalled, async (req, res) =
     res.render('items', {
       category,
       items: result.items || [],
+      host: req.query.host || '',
+      apiKey: process.env.SHOPIFY_API_KEY
+    });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).send('Error: ' + error.message);
+  }
+});
+
+app.get('/app/categories/:categoryId/items/new', ensureInstalled, async (req, res) => {
+  try {
+    const shopDomain = req.query.shop;
+    if (!shopDomain) {
+      return res.status(400).send('Missing shop parameter');
+    }
+
+    const { categoryId } = req.params;
+    const category = await CategoryModel.findById(categoryId, shopDomain);
+
+    if (!category) {
+      return res.status(404).send('Category not found');
+    }
+
+    res.render('item-form', {
+      category,
+      item: null,
+      isEdit: false,
       host: req.query.host || '',
       apiKey: process.env.SHOPIFY_API_KEY
     });

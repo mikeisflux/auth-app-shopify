@@ -10,9 +10,9 @@
         </nav>
       </div>
       <div class="Polaris-Page-Header__TitleWrapper">
-        <h1 class="Polaris-Header-Title"><%= category.name %></h1>
+        <h1 class="Polaris-Header-Title" style="font-size: 28px; font-weight: 600; margin-bottom: 8px;"><%= category.name %></h1>
         <% if (category.description) { %>
-          <p class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--subdued"><%= category.description %></p>
+          <p class="Polaris-Text--root Polaris-Text--bodyMd" style="color: #6d7175; margin-top: 4px;"><%= category.description %></p>
         <% } %>
       </div>
       <div class="Polaris-Page-Header__RightAlign">
@@ -95,7 +95,5 @@
     <% } %>
   </div>
 </div>
-
-<script>
 
 <%- include('footer') %>

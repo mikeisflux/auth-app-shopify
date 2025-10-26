@@ -1,0 +1,121 @@
+<%- include('header') %>
+<div class="Polaris-Page">
+  <div class="Polaris-Page-Header">
+    <div class="Polaris-Page-Header__Row">
+      <div class="Polaris-Page-Header__BreadcrumbWrapper">
+        <nav role="navigation">
+          <a href="javascript:history.back()" class="Polaris-Breadcrumbs__Breadcrumb" onclick="event.preventDefault(); navigate('/app/categories/<%= category.id %>/items')">
+            <span class="Polaris-Breadcrumbs__Content">Back to <%= category.name %></span>
+          </a>
+        </nav>
+      </div>
+      <div class="Polaris-Page-Header__TitleWrapper">
+        <h1 class="Polaris-Header-Title"><%= isEdit ? 'Edit Item' : 'Add Item' %></h1>
+      </div>
+    </div>
+  </div>
+
+  <div class="Polaris-Page__Content">
+    <div class="Polaris-Layout">
+      <div class="Polaris-Layout__Section">
+        <div class="Polaris-Card">
+          <div class="Polaris-Card__Section">
+            <form id="item-form" action="/app/categories/<%= category.id %>/items" method="POST" enctype="multipart/form-data">
+              <div class="Polaris-FormLayout">
+                <div class="Polaris-FormLayout__Item">
+                  <label class="Polaris-Label" for="name">
+                    <span class="Polaris-Label__Text">Item Name</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    class="Polaris-TextField__Input"
+                    value="<%= item ? item.name : '' %>"
+                    placeholder="e.g., Charizard Holo Card"
+                    required
+                  />
+                </div>
+
+                <div class="Polaris-FormLayout__Item">
+                  <label class="Polaris-Label" for="serialNumber">
+                    <span class="Polaris-Label__Text">Serial Number</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="serialNumber"
+                    name="serialNumber"
+                    class="Polaris-TextField__Input"
+                    value="<%= item ? item.serial_number : '' %>"
+                    placeholder="e.g., PSA-12345"
+                    required
+                  />
+                </div>
+
+                <div class="Polaris-FormLayout__Item">
+                  <label class="Polaris-Label" for="description">
+                    <span class="Polaris-Label__Text">Description</span>
+                  </label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    class="Polaris-TextField__Textarea"
+                    placeholder="Describe this item..."
+                  ><%= item ? item.description : '' %></textarea>
+                </div>
+
+                <div class="Polaris-FormLayout__Item">
+                  <label class="Polaris-Label" for="image">
+                    <span class="Polaris-Label__Text">Image</span>
+                  </label>
+                  <input
+                    type="file"
+                    id="image"
+                    name="image"
+                    class="Polaris-TextField__Input"
+                    accept="image/*"
+                  />
+                  <% if (item && item.image_url) { %>
+                    <div style="margin-top: 12px;">
+                      <img src="<%= item.image_url %>" alt="Current image" style="max-width: 200px; border-radius: 8px;">
+                    </div>
+                  <% } %>
+                </div>
+
+                <div class="Polaris-FormLayout__Item">
+                  <label class="Polaris-Checkbox">
+                    <input
+                      type="checkbox"
+                      id="isActive"
+                      name="isActive"
+                      class="Polaris-Checkbox__Input"
+                      <%= !item || item.is_active ? 'checked' : '' %>
+                    />
+                    <span class="Polaris-Checkbox__Label">Active</span>
+                  </label>
+                </div>
+
+                <div class="Polaris-FormLayout__Item">
+                  <div class="Polaris-InlineStack" style="gap: 12px;">
+                    <button type="submit" class="Polaris-Button Polaris-Button--primary">
+                      <span class="Polaris-Button__Content">
+                        <span class="Polaris-Button__Text"><%= isEdit ? 'Save Changes' : 'Add Item' %></span>
+                      </span>
+                    </button>
+                    <button type="button" class="Polaris-Button" onclick="navigate('/app/categories/<%= category.id %>/items')">
+                      <span class="Polaris-Button__Content">
+                        <span class="Polaris-Button__Text">Cancel</span>
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('footer') %>
