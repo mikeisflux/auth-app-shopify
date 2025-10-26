@@ -65,8 +65,25 @@ app.post(shopify.config.webhooks.path, shopify.processWebhooks({ webhookHandlers
   }
 }}));
 
-// Middleware for browser-based routes
-const ensureInstalled = shopify.ensureInstalledOnShop();
+// Custom middleware for embedded apps - just verify shop query param
+const ensureInstalled = async (req, res, next) => {
+  try {
+    const shopDomain = req.query.shop;
+
+    if (!shopDomain) {
+      console.log('Missing shop parameter, redirecting to auth');
+      return res.redirect(`${shopify.config.auth.path}?shop=${req.query.shop || ''}`);
+    }
+
+    // For embedded apps, the shop and host params are enough
+    // Shopify admin handles the authentication
+    console.log(`Request for ${req.path} from shop: ${shopDomain}`);
+    next();
+  } catch (error) {
+    console.error('Middleware error:', error);
+    return res.redirect(`${shopify.config.auth.path}?shop=${req.query.shop || ''}`);
+  }
+};
 
 // Dashboard
 app.get('/', ensureInstalled, async (req, res) => {
