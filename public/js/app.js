@@ -14,20 +14,18 @@ function navigate(path) {
     }
   }
 
-  if (window.appBridge && window.appBridge.redirect) {
-    window.appBridge.redirect(path);
-  } else {
-    window.location.href = path;
-  }
+  console.log('Navigating to:', path);
+  // Use direct navigation for server-side routing
+  window.location.href = path;
 }
 
 // Show toast message
 function showToast(message, isError = false) {
-  if (window.appBridge && window.appBridge.showToast) {
-    window.appBridge.showToast(message, isError);
+  if (window.showToast) {
+    window.showToast(message, isError);
   } else {
-    // Fallback to alert if App Bridge is not available
-    alert(message);
+    // Fallback to console.log if Shopify toast is not available
+    console.log(isError ? 'ERROR:' : 'INFO:', message);
   }
 }
 

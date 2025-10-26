@@ -1,41 +1,20 @@
   </div>
 
-  <!-- Shopify App Bridge Initialization -->
+  <!-- Shopify Admin Context -->
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('Initializing App Bridge...');
-      console.log('window.shopify:', window.shopify);
-      console.log('window.shopify keys:', window.shopify ? Object.keys(window.shopify) : 'undefined');
-      console.log('window["app-bridge"]:', window['app-bridge']);
+    // We're already embedded in Shopify admin - no need to initialize App Bridge
+    // window.shopify is provided by Shopify and contains the admin API
+    console.log('Shopify admin context available:', !!window.shopify);
 
-      // Try the modern App Bridge API
-      const AppBridge = window['app-bridge'];
-
-      if (AppBridge && AppBridge.createApp) {
-        try {
-          const app = AppBridge.createApp({
-            apiKey: '<%= apiKey %>',
-            host: '<%= host %>',
-            forceRedirect: true
-          });
-
-          // Make app bridge available globally with helper functions
-          window.appBridge = {
-            app: app,
-            redirect: function(path) {
-              const Redirect = AppBridge.actions.Redirect;
-              app.dispatch(Redirect.create(app, {url: path}));
-            }
-          };
-
-          console.log('App Bridge initialized successfully with modern API');
-        } catch (error) {
-          console.error('App Bridge initialization error:', error);
-        }
-      } else {
-        console.error('App Bridge not available. Available globals:', Object.keys(window).filter(k => k.toLowerCase().includes('app') || k.toLowerCase().includes('shop')));
-      }
-    });
+    // Make toast helper available globally if needed
+    if (window.shopify && window.shopify.toast) {
+      window.showToast = function(message, isError = false) {
+        window.shopify.toast.show(message, {
+          duration: 5000,
+          isError: isError
+        });
+      };
+    }
   </script>
 
   <!-- Custom JS -->
