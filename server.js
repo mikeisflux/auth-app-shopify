@@ -53,9 +53,6 @@ app.get(
   }
 );
 
-// Exit iframe route for embedded app
-app.get(shopify.config.exitIframePath, shopify.exitIframe());
-
 // Webhooks
 app.post(shopify.config.webhooks.path, shopify.processWebhooks({ webhookHandlers: {
   APP_UNINSTALLED: {
