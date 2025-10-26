@@ -16,9 +16,9 @@ import {
   Text,
   Thumbnail
 } from "@shopify/polaris";
-import { authenticate } from "../../shopify.server";
-import { ItemModel } from "../../models/item.server";
-import { CategoryModel } from "../../models/category.server";
+import { authenticate } from "../shopify.server";
+import { ItemModel } from "../models/item.server";
+import { CategoryModel } from "../models/category.server";
 
 export const loader = async ({ request, params }) => {
   const { session } = await authenticate.admin(request);
@@ -136,7 +136,7 @@ export default function CategoryItems() {
     item.serial_number,
     item.description?.substring(0, 50) + (item.description?.length > 50 ? "..." : "") || "-",
     item.verification_count || 0,
-    new Date(item.created_at).toLocaleDateString(),
+    item.created_at.split("T")[0],
     <InlineStack gap="200">
       <Button
         size="slim"

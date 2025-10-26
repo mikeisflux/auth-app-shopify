@@ -1,0 +1,181 @@
+<div class="Polaris-Page">
+  <div class="Polaris-Page-Header">
+    <div class="Polaris-Page-Header__Row">
+      <div class="Polaris-Page-Header__BreadcrumbWrapper">
+        <nav role="navigation">
+          <a href="/app" class="Polaris-Breadcrumbs__Breadcrumb">
+            <span class="Polaris-Breadcrumbs__Content">Back</span>
+          </a>
+        </nav>
+      </div>
+      <div class="Polaris-Page-Header__TitleWrapper">
+        <h1 class="Polaris-Header-Title">Billing & Subscription</h1>
+      </div>
+    </div>
+  </div>
+
+  <div class="Polaris-Page__Content">
+    <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-500);">
+
+      <!-- Current Subscription -->
+      <% if (hasActiveSubscription) { %>
+        <div class="Polaris-Card">
+          <div class="Polaris-Card__Section">
+            <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-400);">
+              <p class="Polaris-Text--root Polaris-Text--headingMd">Current Subscription</p>
+              <div class="Polaris-InlineStack" style="justify-content: space-between;">
+                <div>
+                  <p class="Polaris-Text--root Polaris-Text--headingSm"><%= subscription.subscription_plan %></p>
+                  <p class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--subdued">
+                    Status: <span class="Polaris-Badge Polaris-Badge--toneSuccess">Active</span>
+                  </p>
+                </div>
+                <div>
+                  <button type="button" class="Polaris-Button" onclick="cancelSubscription()">
+                    <span class="Polaris-Button__Content">
+                      <span class="Polaris-Button__Text">Cancel Subscription</span>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% } %>
+
+      <!-- Available Plans -->
+      <div class="Polaris-Layout">
+        <% plans.forEach(plan => { %>
+          <div class="Polaris-Layout__Section Polaris-Layout__Section--oneThird">
+            <div class="Polaris-Card">
+              <div class="Polaris-Card__Section">
+                <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-400);">
+                  <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-200);">
+                    <p class="Polaris-Text--root Polaris-Text--headingMd"><%= plan.displayName %></p>
+                    <p class="Polaris-Text--root Polaris-Text--heading2xl">$<%= plan.price %>/mo</p>
+                    <p class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--subdued"><%= plan.description %></p>
+                  </div>
+
+                  <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-200);">
+                    <p class="Polaris-Text--root Polaris-Text--bodySm"><strong>Features:</strong></p>
+                    <ul style="margin: 0; padding-left: 20px;">
+                      <li><%= plan.maxCategories %> categories</li>
+                      <li><%= plan.maxItems %> items per category</li>
+                      <% if (plan.features) { %>
+                        <% plan.features.forEach(feature => { %>
+                          <li><%= feature %></li>
+                        <% }); %>
+                      <% } %>
+                    </ul>
+                  </div>
+
+                  <% if (!hasActiveSubscription || subscription.subscription_plan !== plan.name) { %>
+                    <button type="button" class="Polaris-Button Polaris-Button--primary" onclick="selectPlan('<%= plan.name %>')">
+                      <span class="Polaris-Button__Content">
+                        <span class="Polaris-Button__Text">
+                          <%= hasActiveSubscription ? 'Switch to Plan' : 'Select Plan' %>
+                        </span>
+                      </span>
+                    </button>
+                  <% } else { %>
+                    <button type="button" class="Polaris-Button" disabled>
+                      <span class="Polaris-Button__Content">
+                        <span class="Polaris-Button__Text">Current Plan</span>
+                      </span>
+                    </button>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+
+      <!-- Billing Information -->
+      <div class="Polaris-Card">
+        <div class="Polaris-Card__Section">
+          <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-300);">
+            <p class="Polaris-Text--root Polaris-Text--headingMd">Billing Information</p>
+            <p class="Polaris-Text--root Polaris-Text--bodySm">
+              All charges will be processed through Shopify's billing system.
+              You can manage your billing information in your Shopify admin panel.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  function navigate(path) {
+    if (window.appBridge) {
+      window.appBridge.redirect(path);
+    } else {
+      window.location.href = path;
+    }
+  }
+
+  async function selectPlan(planName) {
+    try {
+      const response = await fetch('/api/billing/select-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ plan: planName })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        if (result.confirmationUrl) {
+          // Redirect to Shopify billing confirmation
+          window.top.location.href = result.confirmationUrl;
+        } else {
+          showToast('Plan selected successfully');
+          setTimeout(() => navigate('/app'), 1000);
+        }
+      } else {
+        showToast('Error selecting plan: ' + result.error, true);
+      }
+    } catch (error) {
+      showToast('Error selecting plan', true);
+    }
+  }
+
+  async function cancelSubscription() {
+    if (!confirm('Are you sure you want to cancel your subscription?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/billing/cancel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        showToast('Subscription cancelled');
+        setTimeout(() => navigate('/app'), 1000);
+      } else {
+        showToast('Error cancelling subscription: ' + result.error, true);
+      }
+    } catch (error) {
+      showToast('Error cancelling subscription', true);
+    }
+  }
+
+  function showToast(message, isError = false) {
+    if (window.appBridge && window.appBridge.showToast) {
+      window.appBridge.showToast(message, isError);
+    } else {
+      alert(message);
+    }
+  }
+</script>

@@ -1,0 +1,113 @@
+// Global navigation helper
+function navigate(path) {
+  if (window.appBridge && window.appBridge.redirect) {
+    window.appBridge.redirect(path);
+  } else {
+    window.location.href = path;
+  }
+}
+
+// Show toast message
+function showToast(message, isError = false) {
+  if (window.appBridge && window.appBridge.showToast) {
+    window.appBridge.showToast(message, isError);
+  } else {
+    // Fallback to alert if App Bridge is not available
+    alert(message);
+  }
+}
+
+// Form submission helpers
+async function submitForm(url, data, method = 'POST') {
+  try {
+    const response = await fetch(url, {
+      method: method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('Form submission error:', error);
+    throw error;
+  }
+}
+
+// Handle category form submission
+async function handleCategorySubmit(event) {
+  event.preventDefault();
+
+  const form = event.target;
+  const formData = new FormData(form);
+  const data = Object.fromEntries(formData.entries());
+
+  try {
+    const result = await submitForm(form.action, data, form.method);
+
+    if (result.success) {
+      showToast('Category saved successfully');
+      setTimeout(() => {
+        navigate('/app/categories');
+      }, 1000);
+    } else {
+      showToast('Error saving category: ' + result.error, true);
+    }
+  } catch (error) {
+    showToast('Error saving category', true);
+  }
+}
+
+// Handle item form submission
+async function handleItemSubmit(event) {
+  event.preventDefault();
+
+  const form = event.target;
+  const formData = new FormData(form);
+
+  try {
+    const response = await fetch(form.action, {
+      method: form.method,
+      body: formData
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      showToast('Item saved successfully');
+      setTimeout(() => {
+        const categoryId = form.dataset.categoryId;
+        navigate(`/app/categories/${categoryId}/items`);
+      }, 1000);
+    } else {
+      showToast('Error saving item: ' + result.error, true);
+    }
+  } catch (error) {
+    showToast('Error saving item', true);
+  }
+}
+
+// Delete confirmation
+function confirmDelete(message, callback) {
+  if (confirm(message)) {
+    callback();
+  }
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('Shopify App initialized');
+
+  // Add event listeners for forms if they exist
+  const categoryForm = document.getElementById('category-form');
+  if (categoryForm) {
+    categoryForm.addEventListener('submit', handleCategorySubmit);
+  }
+
+  const itemForm = document.getElementById('item-form');
+  if (itemForm) {
+    itemForm.addEventListener('submit', handleItemSubmit);
+  }
+});

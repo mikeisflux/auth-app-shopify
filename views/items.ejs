@@ -1,0 +1,106 @@
+<div class="Polaris-Page">
+  <div class="Polaris-Page-Header">
+    <div class="Polaris-Page-Header__Row">
+      <div class="Polaris-Page-Header__BreadcrumbWrapper">
+        <nav role="navigation">
+          <a href="/app/categories" class="Polaris-Breadcrumbs__Breadcrumb">
+            <span class="Polaris-Breadcrumbs__Content">Back to Categories</span>
+          </a>
+        </nav>
+      </div>
+      <div class="Polaris-Page-Header__TitleWrapper">
+        <h1 class="Polaris-Header-Title"><%= category.name %></h1>
+        <% if (category.description) { %>
+          <p class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--subdued"><%= category.description %></p>
+        <% } %>
+      </div>
+      <div class="Polaris-Page-Header__RightAlign">
+        <button type="button" class="Polaris-Button Polaris-Button--primary" onclick="navigate('/app/categories/<%= category.id %>/items/new')">
+          <span class="Polaris-Button__Content">
+            <span class="Polaris-Button__Text">Add Item</span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="Polaris-Page__Content">
+    <% if (items.length === 0) { %>
+      <div class="Polaris-EmptyState">
+        <div class="Polaris-EmptyState__ImageContainer">
+          <img src="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png" alt="No items" class="Polaris-EmptyState__Image">
+        </div>
+        <div class="Polaris-EmptyState__Content">
+          <p class="Polaris-Text--root Polaris-Text--headingLg">No items yet</p>
+          <div class="Polaris-EmptyState__Details">
+            <p>Add your first collectible item to this category.</p>
+          </div>
+          <div class="Polaris-EmptyState__Actions">
+            <button type="button" class="Polaris-Button Polaris-Button--primary" onclick="navigate('/app/categories/<%= category.id %>/items/new')">
+              <span class="Polaris-Button__Content">
+                <span class="Polaris-Button__Text">Add Item</span>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    <% } else { %>
+      <div class="Polaris-Layout">
+        <div class="Polaris-Layout__Section">
+          <div class="Polaris-Card">
+            <div class="Polaris-DataTable">
+              <div class="Polaris-DataTable__ScrollContainer">
+                <table class="Polaris-DataTable__Table">
+                  <thead>
+                    <tr>
+                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header">Image</th>
+                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header">Name</th>
+                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header">Serial Number</th>
+                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header">Status</th>
+                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header">Created</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% items.forEach(item => { %>
+                      <tr class="Polaris-DataTable__TableRow">
+                        <td class="Polaris-DataTable__Cell">
+                          <% if (item.image_url) { %>
+                            <img src="<%= item.image_url %>" alt="<%= item.name %>" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
+                          <% } else { %>
+                            <div style="width: 50px; height: 50px; background: #f6f6f7; border-radius: 4px;"></div>
+                          <% } %>
+                        </td>
+                        <td class="Polaris-DataTable__Cell"><%= item.name %></td>
+                        <td class="Polaris-DataTable__Cell"><%= item.serial_number %></td>
+                        <td class="Polaris-DataTable__Cell">
+                          <% if (item.is_active) { %>
+                            <span class="Polaris-Badge Polaris-Badge--toneSuccess">Active</span>
+                          <% } else { %>
+                            <span class="Polaris-Badge Polaris-Badge--toneWarning">Inactive</span>
+                          <% } %>
+                        </td>
+                        <td class="Polaris-DataTable__Cell">
+                          <%= new Date(item.created_at).toLocaleDateString() %>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<script>
+  function navigate(path) {
+    if (window.appBridge) {
+      window.appBridge.redirect(path);
+    } else {
+      window.location.href = path;
+    }
+  }
+</script>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title || 'Collectible Tracker' %></title>
+
+  <!-- Shopify Polaris CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/@shopify/polaris@13.9.5/build/esm/styles.css">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/public/css/app.css">
+
+  <!-- Shopify App Bridge -->
+  <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js"></script>
+</head>
+<body>
+  <div id="app-container">
+    <%- body %>
+  </div>
+
+  <!-- Shopify App Bridge Initialization -->
+  <script>
+    const appBridgeConfig = {
+      apiKey: '<%= apiKey %>',
+      host: '<%= host %>',
+      forceRedirect: true
+    };
+
+    if (window.shopify && window.shopify.environment && window.shopify.environment.embedded) {
+      const app = window.shopify.createApp(appBridgeConfig);
+
+      // App Bridge actions
+      window.appBridge = {
+        app: app,
+        redirect: (path) => {
+          const redirect = window.shopify.Redirect.create(app);
+          redirect.dispatch(window.shopify.Redirect.Action.APP, path);
+        },
+        showToast: (message, isError = false) => {
+          const toastOptions = {
+            message: message,
+            duration: 5000,
+            isError: isError
+          };
+          const toast = window.shopify.Toast.create(app, toastOptions);
+          toast.dispatch(window.shopify.Toast.Action.SHOW);
+        }
+      };
+    }
+  </script>
+
+  <!-- Custom JS -->
+  <script src="/public/js/app.js"></script>
+</body>
+</html>

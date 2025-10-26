@@ -6,8 +6,6 @@ import {
   shopifyApp,
   LATEST_API_VERSION,
 } from "@shopify/shopify-app-remix/server";
-import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
-import { restResources } from "@shopify/shopify-api/rest/admin/2025-10";
 import { PostgreSQLSessionStorage } from "@shopify/shopify-app-session-storage-postgresql";
 
 const shopify = shopifyApp({
@@ -18,19 +16,14 @@ const shopify = shopifyApp({
   appUrl: process.env.SHOPIFY_APP_URL || process.env.HOST || "",
   authPathPrefix: "/auth",
   sessionStorage: new PostgreSQLSessionStorage(
+    process.env.DATABASE_URL,
     {
-      host: process.env.AWS_DB_HOST,
-      port: parseInt(process.env.AWS_DB_PORT || '5432'),
-      database: process.env.AWS_DB_NAME,
-      user: process.env.AWS_DB_USER,
-      password: process.env.AWS_DB_PASSWORD,
-      ssl: {
-        rejectUnauthorized: false
+      connectionOptions: {
+        ssl: { rejectUnauthorized: false }
       }
     }
   ),
   distribution: AppDistribution.AppStore,
-  restResources,
   webhooks: {
     APP_UNINSTALLED: {
       deliveryMethod: DeliveryMethod.Http,
@@ -51,10 +44,7 @@ const shopify = shopifyApp({
   },
   hooks: {
     afterAuth: async ({ session }) => {
-      // Register webhooks after successful authentication
       shopify.registerWebhooks({ session });
-      
-      // Store shop information in database
       const { ShopModel } = await import("./models/shop.server.js");
       await ShopModel.upsert({
         shopDomain: session.shop,

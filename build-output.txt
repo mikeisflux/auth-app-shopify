@@ -1,0 +1,15 @@
+
+> build
+> remix build
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+[info] building... (NODE_ENV=production)
+(node:102923) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/ec2-user/auth-app-shopify/remix.config.js?t=1761383478105.075 is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /home/ec2-user/auth-app-shopify/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[warn] Route discovery/manifest behavior is changing in React Router v7
+┃ You can use the `v3_lazyRouteDiscovery` future flag to opt-in early.
+┃ -> https://remix.run/docs/en/2.13.1/start/future-flags#v3_lazyRouteDiscovery
+┗
+[info] built (4.9s)

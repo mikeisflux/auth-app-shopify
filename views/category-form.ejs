@@ -1,0 +1,99 @@
+<div class="Polaris-Page">
+  <div class="Polaris-Page-Header">
+    <div class="Polaris-Page-Header__Row">
+      <div class="Polaris-Page-Header__BreadcrumbWrapper">
+        <nav role="navigation">
+          <a href="/app/categories" class="Polaris-Breadcrumbs__Breadcrumb">
+            <span class="Polaris-Breadcrumbs__Content">Back to Categories</span>
+          </a>
+        </nav>
+      </div>
+      <div class="Polaris-Page-Header__TitleWrapper">
+        <h1 class="Polaris-Header-Title"><%= isEdit ? 'Edit Category' : 'Create Category' %></h1>
+      </div>
+    </div>
+  </div>
+
+  <div class="Polaris-Page__Content">
+    <div class="Polaris-Layout">
+      <div class="Polaris-Layout__Section">
+        <div class="Polaris-Card">
+          <div class="Polaris-Card__Section">
+            <form id="category-form" action="/app/categories" method="POST">
+              <div class="Polaris-FormLayout">
+                <div class="Polaris-FormLayout__Item">
+                  <label class="Polaris-Label" for="name">
+                    <span class="Polaris-Label__Text">Category Name</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    class="Polaris-TextField__Input"
+                    value="<%= category ? category.name : '' %>"
+                    placeholder="e.g., Trading Cards, Action Figures"
+                    required
+                  />
+                </div>
+
+                <div class="Polaris-FormLayout__Item">
+                  <label class="Polaris-Label" for="description">
+                    <span class="Polaris-Label__Text">Description</span>
+                  </label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    class="Polaris-TextField__Textarea"
+                    placeholder="Describe this category..."
+                  ><%= category ? category.description : '' %></textarea>
+                </div>
+
+                <div class="Polaris-FormLayout__Item">
+                  <label class="Polaris-Label" for="displayOrder">
+                    <span class="Polaris-Label__Text">Display Order</span>
+                  </label>
+                  <input
+                    type="number"
+                    id="displayOrder"
+                    name="displayOrder"
+                    class="Polaris-TextField__Input"
+                    value="<%= category ? category.display_order : 0 %>"
+                    min="0"
+                  />
+                  <p class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--subdued">
+                    Lower numbers appear first
+                  </p>
+                </div>
+
+                <div class="Polaris-FormLayout__Item">
+                  <div class="Polaris-InlineStack" style="gap: 12px;">
+                    <button type="submit" class="Polaris-Button Polaris-Button--primary">
+                      <span class="Polaris-Button__Content">
+                        <span class="Polaris-Button__Text"><%= isEdit ? 'Save Changes' : 'Create Category' %></span>
+                      </span>
+                    </button>
+                    <button type="button" class="Polaris-Button" onclick="navigate('/app/categories')">
+                      <span class="Polaris-Button__Content">
+                        <span class="Polaris-Button__Text">Cancel</span>
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function navigate(path) {
+    if (window.appBridge) {
+      window.appBridge.redirect(path);
+    } else {
+      window.location.href = path;
+    }
+  }
+</script>

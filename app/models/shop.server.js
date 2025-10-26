@@ -1,5 +1,5 @@
 // Shop model - handles merchant store data
-import { query } from '../db/connection.server.js';
+import { query } from "../../db/connection.server.js";
 
 export const ShopModel = {
   // Find shop by domain
@@ -99,13 +99,28 @@ export const ShopModel = {
     return result.rows[0]?.count || 0;
   },
 
+  // Mark shop as uninstalled
+  async markUninstalled(shopDomain) {
+    const result = await query(
+      `UPDATE shops
+       SET subscription_status = 'cancelled',
+           billing_id = NULL,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE shop_domain = $1
+       RETURNING *`,
+      [shopDomain]
+    );
+
+    return result.rows[0] || null;
+  },
+
   // Delete shop (GDPR compliance)
   async delete(shopDomain) {
     const result = await query(
       'DELETE FROM shops WHERE shop_domain = $1 RETURNING *',
       [shopDomain]
     );
-    
+
     return result.rows[0] || null;
   }
 };

@@ -1,8 +1,8 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-name = "collectible-tracker"
+name = "verify-my-collectible"
 client_id = "YOUR_CLIENT_ID_HERE"
-application_url = "https://YOUR_NGROK_URL_HERE"
+application_url = "https://verifymycollectible.com"
 embedded = true
 
 [build]
@@ -10,39 +10,20 @@ automatically_update_urls_on_dev = true
 dev_store_url = "YOUR_DEV_STORE.myshopify.com"
 
 [access_scopes]
-# Required scopes for the app
-scopes = "write_products,read_products,write_files,read_files,write_customers,read_customers"
+scopes = "write_products,read_customers,write_files"
 
 [auth]
 redirect_urls = [
-  "https://YOUR_NGROK_URL_HERE/auth/callback",
-  "https://YOUR_NGROK_URL_HERE/auth/shopify/callback",
-  "https://YOUR_NGROK_URL_HERE/api/auth/callback"
+  "https://verifymycollectible.com/auth/callback",
+  "https://verifymycollectible.com/auth/shopify/callback",
+  "https://verifymycollectible.com/api/auth/callback"
 ]
 
 [webhooks]
-api_version = "2025-10"
-
-[[webhooks.subscriptions]]
-topics = ["app/uninstalled"]
-uri = "/api/webhooks"
-
-[[webhooks.subscriptions]]
-topics = ["customers/data_request"]
-uri = "/api/webhooks"
-
-[[webhooks.subscriptions]]
-topics = ["customers/redact"]
-uri = "/api/webhooks"
-
-[[webhooks.subscriptions]]
-topics = ["shop/redact"]
-uri = "/api/webhooks"
-
-[app_proxy]
-url = "https://YOUR_NGROK_URL_HERE"
-subpath = "apps/collectibles"
-prefix = "apps"
+api_version = "2024-10"
 
 [pos]
 embedded = false
+
+[[pos.embedded_paths]]
+url = "https://verifymycollectible.com"

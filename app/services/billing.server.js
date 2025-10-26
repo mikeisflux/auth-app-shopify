@@ -1,6 +1,31 @@
 // Billing service - handles Shopify recurring app charges
-import { shopifyApi } from "@shopify/shopify-api";
-import { ShopModel } from '../models/shop.server.js';
+import shopify from "../config/shopify.js";
+import { ShopModel } from "../models/shop.server.js";
+
+function resolveAppBaseUrl() {
+  const rawUrl = process.env.SHOPIFY_APP_URL || process.env.HOST || "";
+
+  if (!rawUrl) {
+    throw new Error(
+      "Missing SHOPIFY_APP_URL or HOST environment variable for billing callbacks"
+    );
+  }
+
+  try {
+    const url = rawUrl.startsWith("http://") || rawUrl.startsWith("https://")
+      ? new URL(rawUrl)
+      : new URL(`https://${rawUrl}`);
+
+    return url;
+  } catch (error) {
+    throw new Error(`Invalid app URL configured for billing callbacks: ${rawUrl}`);
+  }
+}
+
+function normalizeShopifyStatus(status) {
+  if (!status) return "inactive";
+  return status.toString().toLowerCase();
+}
 
 export const PLANS = {
   BASIC: {
@@ -40,7 +65,7 @@ export class BillingService {
       throw new Error('Invalid plan name');
     }
 
-    const client = new shopifyApi.clients.Graphql({ session: this.session });
+    const client = new shopify.api.clients.Graphql({ session: this.session });
 
     const mutation = `
       mutation CreateRecurringCharge($name: String!, $price: Decimal!, $returnUrl: URL!) {
@@ -69,7 +94,8 @@ export class BillingService {
       }
     `;
 
-    const returnUrl = `https://${process.env.HOST}/api/billing/callback`;
+    const baseUrl = resolveAppBaseUrl();
+    const returnUrl = new URL("/api/billing/callback", baseUrl).toString();
 
     const response = await client.query({
       data: {
@@ -92,7 +118,7 @@ export class BillingService {
     // Store pending subscription info
     await ShopModel.updateSubscription(this.shop, {
       plan: planName,
-      status: 'pending',
+      status: "pending",
       billingId: appSubscription.id,
       trialEndsAt: null
     });
@@ -106,39 +132,86 @@ export class BillingService {
   // Check subscription status
   async checkSubscription() {
     const subscription = await ShopModel.getSubscription(this.shop);
-    
+
     if (!subscription) {
-      return { hasActiveSubscription: false, plan: null };
+      return { hasActiveSubscription: false, plan: null, status: "none" };
     }
 
-    // If status is active, verify with Shopify
-    if (subscription.subscription_status === 'active') {
+    const { subscription_plan, subscription_status, billing_id, trial_ends_at } = subscription;
+
+    if (!billing_id) {
+      return {
+        hasActiveSubscription: false,
+        plan: subscription_plan,
+        status: subscription_status || "inactive",
+        currentPeriodEnd: trial_ends_at,
+      };
+    }
+
+    if (subscription_status === 'pending' || subscription_status === 'active') {
       try {
-        const isValid = await this.verifyActiveSubscription(subscription.billing_id);
-        
-        if (!isValid) {
-          // Update status to inactive
-          await ShopModel.updateSubscription(this.shop, {
-            ...subscription,
-            status: 'inactive'
-          });
-          return { hasActiveSubscription: false, plan: null };
+        const remoteSubscription = await this.fetchSubscriptionFromShopify(billing_id);
+
+        const remotePeriodEnd = remoteSubscription?.currentPeriodEnd
+          ? new Date(remoteSubscription.currentPeriodEnd).toISOString()
+          : null;
+
+        if (remoteSubscription && remoteSubscription.status === 'ACTIVE') {
+
+          if (
+            subscription_status !== 'active' ||
+            (remotePeriodEnd && remotePeriodEnd !== trial_ends_at)
+          ) {
+            await ShopModel.updateSubscription(this.shop, {
+              plan: subscription_plan,
+              status: 'active',
+              billingId: billing_id,
+              trialEndsAt: remotePeriodEnd,
+            });
+          }
+
+          return {
+            hasActiveSubscription: true,
+            plan: subscription_plan,
+            status: 'active',
+            currentPeriodEnd: remotePeriodEnd,
+          };
         }
+
+        const nextStatus = normalizeShopifyStatus(remoteSubscription?.status);
+
+        if (nextStatus !== subscription_status) {
+          await ShopModel.updateSubscription(this.shop, {
+            plan: subscription_plan,
+            status: nextStatus,
+            billingId: remoteSubscription ? billing_id : null,
+            trialEndsAt: remotePeriodEnd,
+          });
+        }
+
+        return {
+          hasActiveSubscription: false,
+          plan: subscription_plan,
+          status: nextStatus,
+          currentPeriodEnd: remotePeriodEnd || trial_ends_at,
+        };
       } catch (error) {
         console.error('Error verifying subscription:', error);
       }
     }
 
     return {
-      hasActiveSubscription: subscription.subscription_status === 'active',
-      plan: subscription.subscription_plan,
-      status: subscription.subscription_status
+      hasActiveSubscription: subscription_status === 'active',
+      plan: subscription_plan,
+      status: subscription_status,
+      currentPeriodEnd: trial_ends_at,
     };
   }
 
-  // Verify active subscription with Shopify
-  async verifyActiveSubscription(subscriptionId) {
-    const client = new shopifyApi.clients.Graphql({ session: this.session });
+  async fetchSubscriptionFromShopify(subscriptionId) {
+    if (!subscriptionId) return null;
+
+    const client = new shopify.api.clients.Graphql({ session: this.session });
 
     const query = `
       query GetSubscription($id: ID!) {
@@ -152,20 +225,14 @@ export class BillingService {
       }
     `;
 
-    try {
-      const response = await client.query({
-        data: {
-          query,
-          variables: { id: subscriptionId }
-        }
-      });
+    const response = await client.query({
+      data: {
+        query,
+        variables: { id: subscriptionId }
+      }
+    });
 
-      const subscription = response.body.data.node;
-      return subscription && subscription.status === 'ACTIVE';
-    } catch (error) {
-      console.error('Error checking subscription:', error);
-      return false;
-    }
+    return response.body.data.node;
   }
 
   // Cancel subscription
@@ -176,7 +243,7 @@ export class BillingService {
       throw new Error('No active subscription found');
     }
 
-    const client = new shopifyApi.clients.Graphql({ session: this.session });
+    const client = new shopify.api.clients.Graphql({ session: this.session });
 
     const mutation = `
       mutation CancelSubscription($id: ID!) {
@@ -208,8 +275,10 @@ export class BillingService {
 
     // Update local database
     await ShopModel.updateSubscription(this.shop, {
-      ...subscription,
-      status: 'cancelled'
+      plan: subscription.subscription_plan,
+      status: "cancelled",
+      billingId: null,
+      trialEndsAt: subscription.trial_ends_at
     });
 
     return true;
@@ -218,6 +287,19 @@ export class BillingService {
   // Get plan details
   static getPlanDetails(planName) {
     return Object.values(PLANS).find(p => p.name === planName) || null;
+  }
+
+  // Get all available plans
+  static getAvailablePlans() {
+    return Object.values(PLANS).map(plan => ({
+      name: plan.name,
+      displayName: plan.displayName,
+      price: plan.price,
+      description: plan.description,
+      maxCategories: plan.categoryLimit,
+      maxItems: 999999,
+      features: []
+    }));
   }
 
   // Get required plan for category count

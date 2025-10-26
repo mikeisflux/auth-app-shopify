@@ -1,0 +1,195 @@
+<div class="Polaris-Page">
+  <div class="Polaris-Page-Header Polaris-Page-Header--hasPagination Polaris-Page-Header--hasNavigation">
+    <div class="Polaris-Page-Header__Row">
+      <div class="Polaris-Page-Header__TitleWrapper">
+        <h1 class="Polaris-Header-Title">Collectible Tracker Dashboard</h1>
+      </div>
+      <div class="Polaris-Page-Header__RightAlign">
+        <div class="Polaris-Page-Header__PrimaryActionWrapper">
+          <button type="button" class="Polaris-Button Polaris-Button--primary" onclick="navigate('/app/categories')">
+            <span class="Polaris-Button__Content">
+              <span class="Polaris-Button__Text">View All Categories</span>
+            </span>
+          </button>
+        </div>
+        <div class="Polaris-Page-Header__ActionGroup">
+          <button type="button" class="Polaris-Button" onclick="navigate('/app/billing')">
+            <span class="Polaris-Button__Content">
+              <span class="Polaris-Button__Text">Manage Subscription</span>
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="Polaris-Page__Content">
+    <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-500);">
+
+      <!-- Subscription Banner -->
+      <% if (!hasActiveSubscription) { %>
+        <div class="Polaris-Banner Polaris-Banner--statusWarning">
+          <div class="Polaris-Banner__Ribbon">
+            <span class="Polaris-Icon Polaris-Icon--colorWarning">
+              <svg viewBox="0 0 20 20"><path d="M10 6a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 6zm0 9a1 1 0 100-2 1 1 0 000 2z"></path></svg>
+            </span>
+          </div>
+          <div class="Polaris-Banner__ContentWrapper">
+            <div class="Polaris-Banner__Heading">
+              <p class="Polaris-Text--root Polaris-Text--headingMd">Subscription Required</p>
+            </div>
+            <div class="Polaris-Banner__Content">
+              <p>Please select a subscription plan to start tracking your collectibles. Plans start at just $9.99/month for up to 2 categories.</p>
+            </div>
+            <div class="Polaris-Banner__Actions">
+              <button type="button" class="Polaris-Button Polaris-Button--outline" onclick="navigate('/app/billing')">
+                <span class="Polaris-Button__Content">
+                  <span class="Polaris-Button__Text">Choose Plan</span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      <% } else { %>
+        <div class="Polaris-Banner Polaris-Banner--statusSuccess">
+          <div class="Polaris-Banner__ContentWrapper">
+            <div class="Polaris-Banner__Content">
+              <p><strong><%= planDetails?.displayName %></strong> - <%= planDetails?.description %></p>
+            </div>
+          </div>
+        </div>
+      <% } %>
+
+      <!-- Stats Cards -->
+      <div class="Polaris-Layout">
+        <div class="Polaris-Layout__Section Polaris-Layout__Section--oneThird">
+          <div class="Polaris-Card">
+            <div class="Polaris-Card__Section">
+              <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-200);">
+                <p class="Polaris-Text--root Polaris-Text--headingMd">Categories</p>
+                <p class="Polaris-Text--root Polaris-Text--heading2xl"><%= stats.totalCategories %></p>
+                <p class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--subdued"><%= stats.activeCategories %> active</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="Polaris-Layout__Section Polaris-Layout__Section--oneThird">
+          <div class="Polaris-Card">
+            <div class="Polaris-Card__Section">
+              <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-200);">
+                <p class="Polaris-Text--root Polaris-Text--headingMd">Total Items</p>
+                <p class="Polaris-Text--root Polaris-Text--heading2xl"><%= stats.totalItems %></p>
+                <p class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--subdued">Collectibles tracked</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="Polaris-Layout__Section Polaris-Layout__Section--oneThird">
+          <div class="Polaris-Card">
+            <div class="Polaris-Card__Section">
+              <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-200);">
+                <p class="Polaris-Text--root Polaris-Text--headingMd">Subscription</p>
+                <p class="Polaris-Text--root Polaris-Text--heading2xl">
+                  <% if (hasActiveSubscription) { %>
+                    <span class="Polaris-Badge Polaris-Badge--toneSuccess">Active</span>
+                  <% } else { %>
+                    <span class="Polaris-Badge Polaris-Badge--toneWarning">Inactive</span>
+                  <% } %>
+                </p>
+                <p class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--subdued">
+                  <%= planDetails ? planDetails.displayName : 'No plan selected' %>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Categories -->
+      <div class="Polaris-Layout">
+        <div class="Polaris-Layout__Section">
+          <div class="Polaris-Card">
+            <div class="Polaris-Card__Section">
+              <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-400);">
+                <div class="Polaris-InlineStack" style="justify-content: space-between;">
+                  <p class="Polaris-Text--root Polaris-Text--headingMd">Recent Categories</p>
+                  <button type="button" class="Polaris-Button" onclick="navigate('/app/categories')">
+                    <span class="Polaris-Button__Content">
+                      <span class="Polaris-Button__Text">View All</span>
+                    </span>
+                  </button>
+                </div>
+
+                <% if (categories.length > 0) { %>
+                  <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-300);">
+                    <% categories.forEach(category => { %>
+                      <div class="Polaris-Card">
+                        <div class="Polaris-Card__Section">
+                          <div class="Polaris-InlineStack" style="justify-content: space-between; align-items: center;">
+                            <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-100);">
+                              <p class="Polaris-Text--root Polaris-Text--headingSm"><%= category.name %></p>
+                              <p class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--subdued"><%= category.item_count %> items</p>
+                            </div>
+                            <button type="button" class="Polaris-Button" onclick="navigate('/app/categories/<%= category.id %>/items')">
+                              <span class="Polaris-Button__Content">
+                                <span class="Polaris-Button__Text">View Items</span>
+                              </span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    <% }); %>
+                  </div>
+                <% } else { %>
+                  <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-300);">
+                    <p class="Polaris-Text--root Polaris-Text--subdued">No categories yet. Create your first category to get started!</p>
+                    <% if (hasActiveSubscription) { %>
+                      <button type="button" class="Polaris-Button Polaris-Button--primary" onclick="navigate('/app/categories/new')">
+                        <span class="Polaris-Button__Content">
+                          <span class="Polaris-Button__Text">Create Category</span>
+                        </span>
+                      </button>
+                    <% } %>
+                  </div>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Start Guide -->
+      <div class="Polaris-Layout">
+        <div class="Polaris-Layout__Section">
+          <div class="Polaris-Card">
+            <div class="Polaris-Card__Section">
+              <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-300);">
+                <p class="Polaris-Text--root Polaris-Text--headingMd">Quick Start Guide</p>
+                <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-200);">
+                  <p>1. Choose a subscription plan based on your needs</p>
+                  <p>2. Create categories for your collectibles</p>
+                  <p>3. Add items with unique serial numbers and images</p>
+                  <p>4. Add the verification widget to your storefront</p>
+                  <p>5. Customers can verify their collectibles using serial numbers</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  function navigate(path) {
+    if (window.appBridge) {
+      window.appBridge.redirect(path);
+    } else {
+      window.location.href = path;
+    }
+  }
+</script>
