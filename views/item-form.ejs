@@ -9,8 +9,12 @@
           </a>
         </nav>
       </div>
-      <div class="Polaris-Page-Header__TitleWrapper">
-        <h1 class="Polaris-Header-Title"><%= isEdit ? 'Edit Item' : 'Add Item' %></h1>
+      <div class="Polaris-Page-Header__TitleWrapper" style="text-align: center;">
+        <h1 class="Polaris-Header-Title" style="font-size: 28px; font-weight: 600; margin-bottom: 8px;"><%= category.name %></h1>
+        <% if (category.description) { %>
+          <p class="Polaris-Text--root Polaris-Text--bodyMd" style="color: #6d7175; margin-top: 4px;"><%= category.description %></p>
+        <% } %>
+        <p class="Polaris-Text--root Polaris-Text--headingMd" style="margin-top: 16px;"><%= isEdit ? 'Edit Item' : 'Add Item' %></p>
       </div>
     </div>
   </div>
@@ -68,15 +72,26 @@
                   <label class="Polaris-Label" for="image">
                     <span class="Polaris-Label__Text">Image</span>
                   </label>
-                  <input
-                    type="file"
-                    id="image"
-                    name="image"
-                    class="Polaris-TextField__Input"
-                    accept="image/*"
-                  />
+                  <div id="dropzone" style="border: 2px dashed #c4cdd5; border-radius: 8px; padding: 40px; text-align: center; background: #f9fafb; transition: all 0.3s; cursor: pointer;">
+                    <input
+                      type="file"
+                      id="image"
+                      name="image"
+                      accept="image/*"
+                      style="display: none;"
+                    />
+                    <div id="dropzone-text">
+                      <p style="font-size: 16px; color: #637381; margin-bottom: 8px;">📷 Drag and drop your image here</p>
+                      <p style="font-size: 14px; color: #919eab;">or click to browse</p>
+                    </div>
+                    <div id="preview-container" style="display: none; margin-top: 16px;">
+                      <img id="image-preview" style="max-width: 200px; max-height: 200px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                      <p id="file-name" style="margin-top: 8px; font-size: 14px; color: #637381;"></p>
+                    </div>
+                  </div>
                   <% if (item && item.image_url) { %>
                     <div style="margin-top: 12px;">
+                      <p style="font-size: 14px; color: #637381; margin-bottom: 8px;">Current image:</p>
                       <img src="<%= item.image_url %>" alt="Current image" style="max-width: 200px; border-radius: 8px;">
                     </div>
                   <% } %>
@@ -117,5 +132,67 @@
     </div>
   </div>
 </div>
+
+<script>
+  // Drag and drop functionality for image upload
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('image');
+  const dropzoneText = document.getElementById('dropzone-text');
+  const previewContainer = document.getElementById('preview-container');
+  const imagePreview = document.getElementById('image-preview');
+  const fileName = document.getElementById('file-name');
+
+  // Click to browse
+  dropzone.addEventListener('click', () => {
+    fileInput.click();
+  });
+
+  // Drag over effect
+  dropzone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropzone.style.borderColor = '#5c6ac4';
+    dropzone.style.background = '#f4f6f8';
+  });
+
+  dropzone.addEventListener('dragleave', () => {
+    dropzone.style.borderColor = '#c4cdd5';
+    dropzone.style.background = '#f9fafb';
+  });
+
+  // Handle drop
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.style.borderColor = '#c4cdd5';
+    dropzone.style.background = '#f9fafb';
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      fileInput.files = files;
+      handleFileSelect(files[0]);
+    }
+  });
+
+  // Handle file input change
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+      handleFileSelect(e.target.files[0]);
+    }
+  });
+
+  function handleFileSelect(file) {
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        imagePreview.src = e.target.result;
+        fileName.textContent = file.name;
+        dropzoneText.style.display = 'none';
+        previewContainer.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    } else {
+      alert('Please select an image file');
+    }
+  }
+</script>
 
 <%- include('footer') %>

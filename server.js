@@ -85,14 +85,16 @@ const ensureInstalled = async (req, res, next) => {
   }
 };
 
-// Dashboard
-app.get('/', ensureInstalled, async (req, res) => {
+// Public homepage
+app.get('/', async (req, res) => {
   try {
-    // Get shop from query params (required for embedded apps)
-    const shopDomain = req.query.shop;
-    if (!shopDomain) {
-      return res.status(400).send('Missing shop parameter');
+    // If no shop parameter, show public homepage
+    if (!req.query.shop) {
+      return res.render('homepage');
     }
+
+    // Otherwise, show embedded app dashboard
+    const shopDomain = req.query.shop;
 
     const subscription = await ShopModel.getSubscription(shopDomain);
     const planDetails = subscription?.subscription_plan
