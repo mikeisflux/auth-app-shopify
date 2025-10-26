@@ -105,25 +105,28 @@ export const ItemModel = {
       serialNumber,
       imageUrl,
       shopifyFileId,
-      additionalInfo
+      additionalInfo,
+      isActive
     } = itemData;
-    
+
     const result = await query(
       `INSERT INTO items (
-        shop_id, category_id, name, description, 
-        serial_number, image_url, shopify_file_id, additional_info
+        shop_id, category_id, name, description,
+        serial_number, image_url, shopify_file_id, additional_info,
+        is_active, created_at, updated_at
        )
-       SELECT s.id, $2, $3, $4, $5, $6, $7, $8
+       SELECT s.id, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
        FROM shops s
        WHERE s.shop_domain = $1
        RETURNING *`,
       [
         shopDomain, categoryId, name, description,
         serialNumber, imageUrl, shopifyFileId,
-        additionalInfo ? JSON.stringify(additionalInfo) : '{}'
+        additionalInfo ? JSON.stringify(additionalInfo) : '{}',
+        isActive !== undefined ? isActive : true
       ]
     );
-    
+
     return result.rows[0];
   },
 
