@@ -2,33 +2,34 @@
 
   <!-- Shopify App Bridge Initialization -->
   <script>
-    const appBridgeConfig = {
-      apiKey: '<%= apiKey %>',
-      host: '<%= host %>',
-      forceRedirect: true
-    };
+    document.addEventListener('DOMContentLoaded', function() {
+      // Check if we're in an embedded app
+      const isEmbedded = window.top !== window.self;
 
-    if (window.shopify && window.shopify.environment && window.shopify.environment.embedded) {
-      const app = window.shopify.createApp(appBridgeConfig);
+      if (isEmbedded && window.AppBridge) {
+        try {
+          const app = window.AppBridge.createApp({
+            apiKey: '<%= apiKey %>',
+            host: '<%= host %>'
+          });
 
-      // App Bridge actions
-      window.appBridge = {
-        app: app,
-        redirect: (path) => {
-          const redirect = window.shopify.Redirect.create(app);
-          redirect.dispatch(window.shopify.Redirect.Action.APP, path);
-        },
-        showToast: (message, isError = false) => {
-          const toastOptions = {
-            message: message,
-            duration: 5000,
-            isError: isError
+          // Make app bridge available globally
+          window.appBridge = {
+            app: app,
+            redirect: function(path) {
+              const Redirect = window.AppBridge.actions.Redirect;
+              app.dispatch(Redirect.create(app).set({path: path}));
+            }
           };
-          const toast = window.shopify.Toast.create(app, toastOptions);
-          toast.dispatch(window.shopify.Toast.Action.SHOW);
+
+          console.log('App Bridge initialized successfully');
+        } catch (error) {
+          console.error('App Bridge initialization error:', error);
         }
-      };
-    }
+      } else {
+        console.log('Not in embedded context or App Bridge not loaded');
+      }
+    });
   </script>
 
   <!-- Custom JS -->
