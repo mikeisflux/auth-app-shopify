@@ -517,7 +517,7 @@ app.post('/api/billing/select-plan', ensureInstalled, async (req, res) => {
   try {
     const shopDomain = req.query.shop;
     if (!shopDomain) {
-      return res.status(400).json({ success: false, error: 'Missing shop parameter' });
+      return res.status(400).send('Missing shop parameter');
     }
 
     // Load session from storage
@@ -525,7 +525,7 @@ app.post('/api/billing/select-plan', ensureInstalled, async (req, res) => {
     const session = await shopify.config.sessionStorage.loadSession(sessionId);
 
     if (!session) {
-      return res.status(401).json({ success: false, error: 'No session found' });
+      return res.status(401).send('No session found. Please reinstall the app.');
     }
 
     const { plan } = req.body;
@@ -533,13 +533,11 @@ app.post('/api/billing/select-plan', ensureInstalled, async (req, res) => {
 
     const result = await billingService.createCharge(plan);
 
-    res.json({
-      success: true,
-      confirmationUrl: result.confirmationUrl
-    });
+    // Redirect to Shopify's billing confirmation page
+    res.redirect(result.confirmationUrl);
   } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    console.error('Billing error:', error);
+    res.status(500).send('Error: ' + error.message);
   }
 });
 

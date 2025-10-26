@@ -71,13 +71,16 @@
                   </div>
 
                   <% if (!hasActiveSubscription || subscription.subscription_plan !== plan.name) { %>
-                    <button type="button" class="Polaris-Button Polaris-Button--primary" onclick="selectPlan('<%= plan.name %>')">
-                      <span class="Polaris-Button__Content">
-                        <span class="Polaris-Button__Text">
-                          <%= hasActiveSubscription ? 'Switch to Plan' : 'Select Plan' %>
+                    <form method="POST" action="/api/billing/select-plan?shop=<%= encodeURIComponent(req.query.shop) %>&host=<%= encodeURIComponent(req.query.host || '') %>" style="display: inline;">
+                      <input type="hidden" name="plan" value="<%= plan.name %>" />
+                      <button type="submit" class="Polaris-Button Polaris-Button--primary">
+                        <span class="Polaris-Button__Content">
+                          <span class="Polaris-Button__Text">
+                            <%= hasActiveSubscription ? 'Switch to Plan' : 'Select Plan' %>
+                          </span>
                         </span>
-                      </span>
-                    </button>
+                      </button>
+                    </form>
                   <% } else { %>
                     <button type="button" class="Polaris-Button" disabled>
                       <span class="Polaris-Button__Content">
