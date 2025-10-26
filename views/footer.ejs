@@ -3,22 +3,32 @@
   <!-- Shopify App Bridge Initialization -->
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Check if we're in an embedded app
-      const isEmbedded = window.top !== window.self;
+      console.log('Initializing App Bridge...');
+      console.log('window.shopify available:', !!window.shopify);
 
-      if (isEmbedded && window.AppBridge) {
+      if (window.shopify) {
         try {
-          const app = window.AppBridge.createApp({
+          const app = window.shopify.createApp({
             apiKey: '<%= apiKey %>',
-            host: '<%= host %>'
+            host: '<%= host %>',
+            forceRedirect: true
           });
 
-          // Make app bridge available globally
+          // Make app bridge available globally with helper functions
           window.appBridge = {
             app: app,
             redirect: function(path) {
-              const Redirect = window.AppBridge.actions.Redirect;
-              app.dispatch(Redirect.create(app).set({path: path}));
+              const redirect = window.shopify.Redirect.create(app);
+              redirect.dispatch(window.shopify.Redirect.Action.APP, path);
+            },
+            showToast: function(message, isError = false) {
+              const toastOptions = {
+                message: message,
+                duration: 5000,
+                isError: isError
+              };
+              const toast = window.shopify.Toast.create(app, toastOptions);
+              toast.dispatch(window.shopify.Toast.Action.SHOW);
             }
           };
 
@@ -27,7 +37,7 @@
           console.error('App Bridge initialization error:', error);
         }
       } else {
-        console.log('Not in embedded context or App Bridge not loaded');
+        console.error('Shopify App Bridge not loaded - window.shopify is undefined');
       }
     });
   </script>
