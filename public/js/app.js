@@ -21,11 +21,20 @@ function navigate(path) {
 
 // Show toast message
 function showToast(message, isError = false) {
-  if (window.showToast) {
-    window.showToast(message, isError);
+  if (window.shopifyToast) {
+    window.shopifyToast(message, isError);
+  } else if (window.shopify && window.shopify.toast) {
+    window.shopify.toast.show(message, {
+      duration: 5000,
+      isError: isError
+    });
   } else {
-    // Fallback to console.log if Shopify toast is not available
-    console.log(isError ? 'ERROR:' : 'INFO:', message);
+    // Fallback to alert if Shopify toast is not available
+    if (isError) {
+      alert('Error: ' + message);
+    } else {
+      console.log('INFO:', message);
+    }
   }
 }
 

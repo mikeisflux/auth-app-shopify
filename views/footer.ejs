@@ -8,7 +8,7 @@
 
     // Make toast helper available globally if needed
     if (window.shopify && window.shopify.toast) {
-      window.showToast = function(message, isError = false) {
+      window.shopifyToast = function(message, isError = false) {
         window.shopify.toast.show(message, {
           duration: 5000,
           isError: isError

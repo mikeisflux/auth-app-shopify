@@ -4,7 +4,7 @@
     <div class="Polaris-Page-Header__Row">
       <div class="Polaris-Page-Header__BreadcrumbWrapper">
         <nav role="navigation">
-          <a href="javascript:history.back()" class="Polaris-Breadcrumbs__Breadcrumb" onclick="event.preventDefault(); navigate('/app/categories/<%= category.id %>/items')">
+          <a href="javascript:void(0)" onclick="navigate('/app/categories/<%= category.id %>/items')" class="Polaris-Breadcrumbs__Breadcrumb">
             <span class="Polaris-Breadcrumbs__Content">Back to <%= category.name %></span>
           </a>
         </nav>
