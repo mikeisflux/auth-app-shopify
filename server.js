@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
+import multer from 'multer';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import shopify from './app/config/shopify.js';
@@ -17,6 +18,12 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Configure multer for file uploads
+const upload = multer({
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
+  storage: multer.memoryStorage()
+});
 
 // Static files
 app.use('/public', express.static(join(__dirname, 'public')));
@@ -233,6 +240,32 @@ app.get('/app/categories/:categoryId/items/new', ensureInstalled, async (req, re
   } catch (error) {
     console.error('Error:', error);
     res.status(500).send('Error: ' + error.message);
+  }
+});
+
+app.post('/app/categories/:categoryId/items', ensureInstalled, upload.single('image'), async (req, res) => {
+  try {
+    const shopDomain = req.query.shop;
+    if (!shopDomain) {
+      return res.status(400).json({ success: false, error: 'Missing shop parameter' });
+    }
+
+    const { categoryId } = req.params;
+    const { name, serialNumber, description, isActive } = req.body;
+
+    // For now, we'll skip image upload to Shopify Files and just store the item
+    // You can add Shopify Files API integration later
+    const item = await ItemModel.create(shopDomain, categoryId, {
+      name,
+      serialNumber,
+      description,
+      isActive: isActive === 'on' || isActive === 'true'
+    });
+
+    res.json({ success: true, item });
+  } catch (error) {
+    console.error('Error creating item:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
