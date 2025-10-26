@@ -119,29 +119,48 @@
   }
 
   async function selectPlan(planName) {
+    console.log('Selecting plan:', planName);
+
     try {
       // Get shop and host from URL
       const urlParams = new URLSearchParams(window.location.search);
       const shop = urlParams.get('shop');
       const host = urlParams.get('host');
 
+      if (!shop) {
+        alert('Error: No shop parameter found');
+        return;
+      }
+
       let url = `/api/billing/select-plan?shop=${encodeURIComponent(shop)}`;
       if (host) {
         url += `&host=${encodeURIComponent(host)}`;
       }
+
+      console.log('Fetching:', url);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
       const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ plan: planName })
+        body: JSON.stringify({ plan: planName }),
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
+      console.log('Response status:', response.status);
+
       const result = await response.json();
+      console.log('Result:', result);
 
       if (result.success) {
         if (result.confirmationUrl) {
+          console.log('Redirecting to:', result.confirmationUrl);
           // Redirect to Shopify billing confirmation
           window.top.location.href = result.confirmationUrl;
         } else {
@@ -149,10 +168,11 @@
           setTimeout(() => navigate('/app'), 1000);
         }
       } else {
-        showToast('Error selecting plan: ' + result.error, true);
+        alert('Error selecting plan: ' + (result.error || 'Unknown error'));
       }
     } catch (error) {
-      showToast('Error selecting plan', true);
+      console.error('Select plan error:', error);
+      alert('Error selecting plan: ' + error.message);
     }
   }
 
