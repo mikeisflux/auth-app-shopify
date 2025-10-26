@@ -54,21 +54,19 @@ app.get(
 );
 
 // Webhooks
-app.post(shopify.config.webhooks.path, shopify.processWebhooks({ webhookHandlers: {} }));
+app.post(shopify.config.webhooks.path, shopify.processWebhooks({ webhookHandlers: {
+  APP_UNINSTALLED: {
+    deliveryMethod: 'http',
+    callbackUrl: '/webhooks',
+    callback: async (topic, shop, body) => {
+      console.log('App uninstalled:', shop);
+      await ShopModel.markUninstalled(shop);
+    }
+  }
+}}));
 
 // Middleware to verify session for app routes
-async function ensureInstalled(req, res, next) {
-  try {
-    await shopify.authenticate.admin(req, res);
-    next();
-  } catch (error) {
-    console.error('Auth error:', error);
-    if (req.query.shop) {
-      return res.redirect(`/auth?shop=${req.query.shop}`);
-    }
-    res.status(401).send('Shop parameter required');
-  }
-}
+const ensureInstalled = shopify.ensureInstalledOnShop();
 
 // Dashboard
 app.get('/', ensureInstalled, async (req, res) => {

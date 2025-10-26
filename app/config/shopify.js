@@ -29,20 +29,7 @@ const shopify = shopifyApp({
     }
   ),
   useOnlineTokens: false,
-});
-
-// Configure webhook handlers
-shopify.api.webhooks.addHandlers({
-  APP_UNINSTALLED: {
-    deliveryMethod: 'http',
-    callbackUrl: '/webhooks',
-    callback: async (topic, shop, body) => {
-      console.log('App uninstalled:', shop);
-      await ShopModel.markUninstalled(shop);
-    }
-  }
+  exitIframePath: '/exitiframe',
 });
 
 export default shopify;
-export const authenticate = shopify.authenticate;
-export const sessionStorage = shopify.sessionStorage;
