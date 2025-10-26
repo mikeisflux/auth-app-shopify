@@ -307,18 +307,26 @@ app.post('/app/categories/:categoryId/items', ensureInstalled, upload.single('im
     // Handle image upload to Shopify Files
     let imageUrl = null;
     let shopifyFileId = null;
+    let uploadWarning = null;
 
     if (req.file) {
       try {
-        console.log('Uploading file to Shopify:', req.file.originalname);
+        console.log('📤 Uploading file to Shopify:', {
+          filename: req.file.originalname,
+          size: req.file.size,
+          mimetype: req.file.mimetype
+        });
 
         // Load session from storage
         const sessionId = shopify.api.session.getOfflineId(shopDomain);
         const session = await shopify.config.sessionStorage.loadSession(sessionId);
 
         if (!session) {
+          console.error('❌ No session found for shop:', shopDomain);
           return res.status(401).json({ success: false, error: 'No session found. Please reinstall the app.' });
         }
+
+        console.log('✓ Session loaded for shop:', shopDomain);
 
         // Upload file to Shopify
         const fileUploadService = new FileUploadService(session);
@@ -331,9 +339,11 @@ app.post('/app/categories/:categoryId/items', ensureInstalled, upload.single('im
         imageUrl = uploadResult.url;
         shopifyFileId = uploadResult.id;
 
-        console.log('File uploaded successfully:', { imageUrl, shopifyFileId });
+        console.log('✅ File uploaded successfully:', { imageUrl, shopifyFileId });
       } catch (uploadError) {
-        console.error('Error uploading file to Shopify:', uploadError);
+        console.error('❌ Error uploading file to Shopify:', uploadError.message);
+        console.error('Full error:', uploadError);
+        uploadWarning = `Image upload failed: ${uploadError.message}`;
         // Continue creating the item even if file upload fails
         // We'll just not have an image
       }
@@ -350,7 +360,11 @@ app.post('/app/categories/:categoryId/items', ensureInstalled, upload.single('im
       isActive: isActive === 'on' || isActive === 'true'
     });
 
-    res.json({ success: true, item });
+    res.json({
+      success: true,
+      item,
+      warning: uploadWarning
+    });
   } catch (error) {
     console.error('Error creating item:', error);
     res.status(500).json({ success: false, error: error.message });

@@ -111,11 +111,15 @@ async function handleItemSubmit(event) {
     const result = await response.json();
 
     if (result.success) {
-      showToast('Item saved successfully');
+      if (result.warning) {
+        showToast('Item saved but ' + result.warning, true);
+      } else {
+        showToast('Item saved successfully');
+      }
       setTimeout(() => {
         const categoryId = form.dataset.categoryId;
         navigate(`/app/categories/${categoryId}/items`);
-      }, 1000);
+      }, 1500);
     } else {
       showToast('Error saving item: ' + result.error, true);
     }
