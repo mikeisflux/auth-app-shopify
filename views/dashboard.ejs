@@ -1,47 +1,96 @@
 <%- include('header') %>
 
+<style>
+  .dashboard-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 48px 32px;
+    margin: -20px -20px 32px -20px;
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .dashboard-title {
+    font-size: 42px !important;
+    font-weight: 700 !important;
+    color: white !important;
+    margin: 0 0 12px 0 !important;
+    letter-spacing: -0.5px;
+  }
+  .dashboard-subtitle {
+    font-size: 18px !important;
+    color: rgba(255,255,255,0.9) !important;
+    font-weight: 400 !important;
+  }
+  .stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 28px 24px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: none !important;
+  }
+  .stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  }
+  .stat-card-purple { border-left: 4px solid #667eea !important; }
+  .stat-card-blue { border-left: 4px solid #4299e1 !important; }
+  .stat-number {
+    font-size: 48px !important;
+    font-weight: 700 !important;
+    color: #2d3748 !important;
+    line-height: 1.2 !important;
+  }
+  .section-title {
+    font-size: 24px !important;
+    font-weight: 700 !important;
+    color: #2d3748 !important;
+    margin-bottom: 8px !important;
+  }
+  .category-card {
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 10px;
+    transition: all 0.2s;
+  }
+  .category-card:hover {
+    border-color: #667eea !important;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  }
+</style>
+
 <div class="Polaris-Page">
-  <div class="Polaris-Page-Header Polaris-Page-Header--hasPagination Polaris-Page-Header--hasNavigation">
-    <div class="Polaris-Page-Header__Row">
-      <div class="Polaris-Page-Header__TitleWrapper">
-        <h1 class="Polaris-Header-Title">Collectible Tracker Dashboard</h1>
-      </div>
-      <div class="Polaris-Page-Header__RightAlign">
-        <div class="Polaris-Page-Header__PrimaryActionWrapper">
-          <button type="button" class="Polaris-Button Polaris-Button--primary" onclick="navigate('/app/categories')">
-            <span class="Polaris-Button__Content">
-              <span class="Polaris-Button__Text">View All Categories</span>
-            </span>
-          </button>
-        </div>
-      </div>
+  <div class="dashboard-header">
+    <div style="max-width: 1200px; margin: 0 auto;">
+      <h1 class="dashboard-title">Collectible Tracker Dashboard</h1>
+      <p class="dashboard-subtitle">Manage and verify your authentic collectibles with ease</p>
     </div>
   </div>
+
+  <div style="padding: 0 32px;">
 
   <div class="Polaris-Page__Content">
     <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-500);">
 
       <!-- Stats Cards -->
-      <div class="Polaris-Layout">
+      <div class="Polaris-Layout" style="margin-bottom: 40px;">
         <div class="Polaris-Layout__Section Polaris-Layout__Section--oneThird">
-          <div class="Polaris-Card">
+          <div class="Polaris-Card stat-card stat-card-purple">
             <div class="Polaris-Card__Section">
-              <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-200);">
-                <p class="Polaris-Text--root Polaris-Text--headingMd">Categories</p>
-                <p class="Polaris-Text--root Polaris-Text--heading2xl"><%= stats.totalCategories %></p>
-                <p class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--subdued"><%= stats.activeCategories %> active</p>
+              <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-300);">
+                <p style="font-size: 16px; font-weight: 600; color: #667eea; text-transform: uppercase; letter-spacing: 1px;">Categories</p>
+                <p class="stat-number"><%= stats.totalCategories %></p>
+                <p style="font-size: 14px; color: #718096; font-weight: 500;"><%= stats.activeCategories %> active collections</p>
               </div>
             </div>
           </div>
         </div>
 
         <div class="Polaris-Layout__Section Polaris-Layout__Section--oneThird">
-          <div class="Polaris-Card">
+          <div class="Polaris-Card stat-card stat-card-blue">
             <div class="Polaris-Card__Section">
-              <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-200);">
-                <p class="Polaris-Text--root Polaris-Text--headingMd">Total Items</p>
-                <p class="Polaris-Text--root Polaris-Text--heading2xl"><%= stats.totalItems %></p>
-                <p class="Polaris-Text--root Polaris-Text--subdued">Collectibles tracked</p>
+              <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-300);">
+                <p style="font-size: 16px; font-weight: 600; color: #4299e1; text-transform: uppercase; letter-spacing: 1px;">Total Items</p>
+                <p class="stat-number"><%= stats.totalItems %></p>
+                <p style="font-size: 14px; color: #718096; font-weight: 500;">Collectibles tracked & verified</p>
               </div>
             </div>
           </div>
@@ -49,14 +98,17 @@
       </div>
 
       <!-- Recent Categories -->
-      <div class="Polaris-Layout">
+      <div class="Polaris-Layout" style="margin-bottom: 40px;">
         <div class="Polaris-Layout__Section">
-          <div class="Polaris-Card">
-            <div class="Polaris-Card__Section">
-              <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-400);">
-                <div class="Polaris-InlineStack" style="justify-content: space-between;">
-                  <p class="Polaris-Text--root Polaris-Text--headingMd">Recent Categories</p>
-                  <button type="button" class="Polaris-Button" onclick="navigate('/app/categories')">
+          <div class="Polaris-Card" style="border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+            <div class="Polaris-Card__Section" style="padding: 32px 28px !important;">
+              <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-500);">
+                <div class="Polaris-InlineStack" style="justify-content: space-between; align-items: center;">
+                  <div>
+                    <p class="section-title">Recent Categories</p>
+                    <p style="font-size: 15px; color: #718096; margin-top: 4px;">Your latest collections at a glance</p>
+                  </div>
+                  <button type="button" class="Polaris-Button Polaris-Button--primary" onclick="navigate('/app/categories')" style="background: #667eea; border-color: #667eea;">
                     <span class="Polaris-Button__Content">
                       <span class="Polaris-Button__Text">View All</span>
                     </span>
@@ -64,18 +116,18 @@
                 </div>
 
                 <% if (categories.length > 0) { %>
-                  <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-300);">
+                  <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-400);">
                     <% categories.forEach(category => { %>
-                      <div class="Polaris-Card">
-                        <div class="Polaris-Card__Section">
+                      <div class="Polaris-Card category-card">
+                        <div class="Polaris-Card__Section" style="padding: 20px 24px !important;">
                           <div class="Polaris-InlineStack" style="justify-content: space-between; align-items: center;">
                             <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-100);">
-                              <p class="Polaris-Text--root Polaris-Text--headingSm"><%= category.name %></p>
-                              <p class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--subdued"><%= category.item_count %> items</p>
+                              <p style="font-size: 18px; font-weight: 600; color: #2d3748;"><%= category.name %></p>
+                              <p style="font-size: 14px; color: #718096; font-weight: 500;"><%= category.item_count %> items tracked</p>
                             </div>
-                            <button type="button" class="Polaris-Button" onclick="navigate('/app/categories/<%= category.id %>/items')">
+                            <button type="button" class="Polaris-Button" onclick="navigate('/app/categories/<%= category.id %>/items')" style="border-color: #667eea; color: #667eea;">
                               <span class="Polaris-Button__Content">
-                                <span class="Polaris-Button__Text">View Items</span>
+                                <span class="Polaris-Button__Text">View Items →</span>
                               </span>
                             </button>
                           </div>
@@ -84,9 +136,10 @@
                     <% }); %>
                   </div>
                 <% } else { %>
-                  <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-300);">
-                    <p class="Polaris-Text--root Polaris-Text--subdued">No categories yet. Create your first category to get started!</p>
-                    <button type="button" class="Polaris-Button Polaris-Button--primary" onclick="navigate('/app/categories/new')">
+                  <div style="text-align: center; padding: 48px 32px; background: #f7fafc; border-radius: 12px; border: 2px dashed #cbd5e0;">
+                    <p style="font-size: 18px; color: #4a5568; margin-bottom: 16px; font-weight: 500;">No categories yet</p>
+                    <p style="font-size: 15px; color: #718096; margin-bottom: 24px;">Create your first category to start tracking collectibles</p>
+                    <button type="button" class="Polaris-Button Polaris-Button--primary" onclick="navigate('/app/categories/new')" style="background: #667eea; border-color: #667eea;">
                       <span class="Polaris-Button__Content">
                         <span class="Polaris-Button__Text">Create Category</span>
                       </span>
@@ -102,15 +155,42 @@
       <!-- Quick Start Guide -->
       <div class="Polaris-Layout">
         <div class="Polaris-Layout__Section">
-          <div class="Polaris-Card">
-            <div class="Polaris-Card__Section">
-              <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-300);">
-                <p class="Polaris-Text--root Polaris-Text--headingMd">Quick Start Guide</p>
-                <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-200);">
-                  <p>1. Create categories for your collectibles</p>
-                  <p>2. Add items with unique serial numbers and images</p>
-                  <p>3. Add the verification widget to your storefront</p>
-                  <p>4. Customers can verify their collectibles using serial numbers</p>
+          <div class="Polaris-Card" style="background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 12px; border: 1px solid #667eea40;">
+            <div class="Polaris-Card__Section" style="padding: 32px 28px !important;">
+              <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-400);">
+                <div>
+                  <p class="section-title" style="color: #667eea;">Quick Start Guide</p>
+                  <p style="font-size: 15px; color: #718096; margin-top: 4px;">Get up and running in 4 simple steps</p>
+                </div>
+                <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-400);">
+                  <div style="display: flex; gap: 16px; align-items: start;">
+                    <div style="background: #667eea; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">1</div>
+                    <div>
+                      <p style="font-size: 16px; font-weight: 600; color: #2d3748; margin-bottom: 4px;">Create categories</p>
+                      <p style="font-size: 14px; color: #718096;">Organize your collectibles into logical categories</p>
+                    </div>
+                  </div>
+                  <div style="display: flex; gap: 16px; align-items: start;">
+                    <div style="background: #764ba2; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">2</div>
+                    <div>
+                      <p style="font-size: 16px; font-weight: 600; color: #2d3748; margin-bottom: 4px;">Add items with details</p>
+                      <p style="font-size: 14px; color: #718096;">Upload images and assign unique serial numbers</p>
+                    </div>
+                  </div>
+                  <div style="display: flex; gap: 16px; align-items: start;">
+                    <div style="background: #4299e1; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">3</div>
+                    <div>
+                      <p style="font-size: 16px; font-weight: 600; color: #2d3748; margin-bottom: 4px;">Install verification widget</p>
+                      <p style="font-size: 14px; color: #718096;">Add the widget to your storefront theme</p>
+                    </div>
+                  </div>
+                  <div style="display: flex; gap: 16px; align-items: start;">
+                    <div style="background: #48bb78; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">4</div>
+                    <div>
+                      <p style="font-size: 16px; font-weight: 600; color: #2d3748; margin-bottom: 4px;">Customers verify authenticity</p>
+                      <p style="font-size: 14px; color: #718096;">Buyers can verify their collectibles instantly using serial numbers</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -119,6 +199,7 @@
       </div>
 
     </div>
+  </div>
   </div>
 </div>
 

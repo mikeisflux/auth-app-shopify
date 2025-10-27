@@ -19,80 +19,115 @@
 }
 </style>
 
+<style>
+  .item-form-header {
+    background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+    padding: 48px 32px;
+    margin: -20px -20px 32px -20px;
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .form-title {
+    font-size: 42px !important;
+    font-weight: 700 !important;
+    color: white !important;
+    margin: 0 0 12px 0 !important;
+    letter-spacing: -0.5px;
+  }
+  .form-subtitle {
+    font-size: 18px !important;
+    color: rgba(255,255,255,0.9) !important;
+    font-weight: 400 !important;
+  }
+  .form-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    padding: 32px;
+    margin-bottom: 24px;
+  }
+  .form-label {
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    color: #2d3748 !important;
+    margin-bottom: 8px !important;
+    display: block;
+  }
+  .form-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus {
+    outline: none;
+    border-color: #ed8936;
+  }
+</style>
+
 <div class="Polaris-Page">
-  <div class="Polaris-Page-Header">
-    <div class="Polaris-Page-Header__Row">
-      <div class="Polaris-Page-Header__BreadcrumbWrapper">
-        <nav role="navigation">
-          <a href="javascript:void(0)" onclick="navigate('/app/categories/<%= category.id %>/items')" class="Polaris-Breadcrumbs__Breadcrumb">
-            <span class="Polaris-Breadcrumbs__Content">Back to <%= category.name %></span>
-          </a>
-        </nav>
-      </div>
-      <div class="Polaris-Page-Header__TitleWrapper" style="text-align: center;">
-        <h1 class="Polaris-Header-Title" style="font-size: 28px; font-weight: 600; margin-bottom: 8px;"><%= category.name %></h1>
-        <% if (category.description) { %>
-          <p class="Polaris-Text--root Polaris-Text--bodyMd" style="color: #6d7175; margin-top: 4px;"><%= category.description %></p>
-        <% } %>
-        <p class="Polaris-Text--root Polaris-Text--headingMd" style="margin-top: 16px;"><%= isEdit ? 'Edit Item' : 'Add Item' %></p>
-      </div>
+  <div class="item-form-header">
+    <div style="max-width: 1200px; margin: 0 auto;">
+      <a href="javascript:void(0)" onclick="navigate('/app/categories/<%= category.id %>/items')" style="color: rgba(255,255,255,0.9); text-decoration: none; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 14px;">
+        <svg style="width: 16px; height: 16px;" viewBox="0 0 20 20" fill="currentColor"><path d="M17 9H5.414l3.293-3.293a1 1 0 10-1.414-1.414l-5 5a1 1 0 000 1.414l5 5a1 1 0 001.414-1.414L5.414 11H17a1 1 0 100-2z"></path></svg>
+        Back to <%= category.name %>
+      </a>
+      <h1 class="form-title"><%= isEdit ? 'Edit' : 'Add New' %> Item</h1>
+      <p class="form-subtitle"><%= isEdit ? 'Update collectible details, images, and serial numbers' : 'Add a new collectible to ' + category.name %></p>
     </div>
   </div>
+
+  <div style="padding: 0 32px;">
 
   <div class="Polaris-Page__Content">
     <div class="Polaris-Layout">
       <div class="Polaris-Layout__Section">
-        <div class="Polaris-Card">
-          <div class="Polaris-Card__Section">
+        <div class="form-card">
+          <h2 style="font-size: 22px; font-weight: 700; color: #2d3748; margin-bottom: 24px;">Item Details</h2>
             <form id="item-form" action="/app/categories/<%= category.id %>/items<%= isEdit ? '/' + item.id : '' %>" method="POST" enctype="multipart/form-data" data-category-id="<%= category.id %>" data-is-edit="<%= isEdit %>">
-              <div class="Polaris-FormLayout">
-                <div class="Polaris-FormLayout__Item">
-                  <label class="Polaris-Label" for="name">
-                    <span class="Polaris-Label__Text">Item Name</span>
-                  </label>
+              <div style="display: flex; flex-direction: column; gap: 24px;">
+                <div>
+                  <label class="form-label" for="name">Item Name</label>
                   <input
                     type="text"
                     id="name"
                     name="name"
-                    class="Polaris-TextField__Input"
+                    class="form-input"
                     value="<%= item ? item.name : '' %>"
                     placeholder="e.g., Charizard Holo Card"
                     required
                   />
                 </div>
 
-                <div class="Polaris-FormLayout__Item">
-                  <label class="Polaris-Label" for="serialNumber">
-                    <span class="Polaris-Label__Text">Serial Number</span>
-                  </label>
+                <div>
+                  <label class="form-label" for="serialNumber">Serial Number</label>
                   <input
                     type="text"
                     id="serialNumber"
                     name="serialNumber"
-                    class="Polaris-TextField__Input"
+                    class="form-input"
                     value="<%= item ? item.serial_number : '' %>"
                     placeholder="e.g., PSA-12345"
                     required
                   />
                 </div>
 
-                <div class="Polaris-FormLayout__Item">
-                  <label class="Polaris-Label" for="description">
-                    <span class="Polaris-Label__Text">Description</span>
-                  </label>
+                <div>
+                  <label class="form-label" for="description">Description</label>
                   <textarea
                     id="description"
                     name="description"
-                    class="Polaris-TextField__Textarea"
-                    placeholder="Describe this item..."
+                    class="form-input"
+                    placeholder="Describe this item in detail..."
+                    rows="4"
                   ><%= item ? item.description : '' %></textarea>
                 </div>
 
-                <div class="Polaris-FormLayout__Item">
-                  <label class="Polaris-Label" for="image">
-                    <span class="Polaris-Label__Text">Image</span>
-                  </label>
-                  <div id="dropzone" style="border: 2px dashed #c4cdd5; border-radius: 8px; padding: 40px; text-align: center; background: #f9fafb; transition: all 0.3s; cursor: pointer;">
+                <div>
+                  <label class="form-label" for="image">Product Image</label>
+                  <div id="dropzone" style="border: 2px dashed #e2e8f0; border-radius: 12px; padding: 48px; text-align: center; background: #f7fafc; transition: all 0.3s; cursor: pointer;">
                     <input
                       type="file"
                       id="image"
@@ -101,55 +136,53 @@
                       style="display: none;"
                     />
                     <div id="dropzone-text">
-                      <p style="font-size: 16px; color: #637381; margin-bottom: 8px;">📷 Drag and drop your image here</p>
-                      <p style="font-size: 14px; color: #919eab;">or click to browse</p>
+                      <div style="font-size: 48px; margin-bottom: 16px;">📷</div>
+                      <p style="font-size: 17px; color: #4a5568; margin-bottom: 8px; font-weight: 600;">Drag and drop your image here</p>
+                      <p style="font-size: 14px; color: #718096;">or click to browse files</p>
                     </div>
-                    <div id="preview-container" style="display: none; margin-top: 16px;">
-                      <img id="image-preview" style="max-width: 200px; max-height: 200px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                      <p id="file-name" style="margin-top: 8px; font-size: 14px; color: #637381;"></p>
+                    <div id="preview-container" style="display: none; margin-top: 24px;">
+                      <img id="image-preview" style="max-width: 250px; max-height: 250px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                      <p id="file-name" style="margin-top: 12px; font-size: 14px; color: #718096; font-weight: 500;"></p>
                     </div>
                   </div>
                   <% if (item && item.image_url) { %>
-                    <div style="margin-top: 12px;">
-                      <p style="font-size: 14px; color: #637381; margin-bottom: 8px;">Current image:</p>
-                      <img src="<%= item.image_url %>" alt="Current image" style="max-width: 200px; border-radius: 8px;">
+                    <div style="margin-top: 20px; padding: 16px; background: #f7fafc; border-radius: 8px;">
+                      <p style="font-size: 14px; color: #4a5568; margin-bottom: 12px; font-weight: 600;">Current image:</p>
+                      <img src="<%= item.image_url %>" alt="Current image" style="max-width: 250px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                     </div>
                   <% } %>
                 </div>
 
-                <div class="Polaris-FormLayout__Item">
-                  <label class="Polaris-Checkbox">
+                <div>
+                  <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 16px; background: #f7fafc; border-radius: 8px; border: 2px solid #e2e8f0; transition: all 0.2s;">
                     <input
                       type="checkbox"
                       id="isActive"
                       name="isActive"
-                      class="Polaris-Checkbox__Input"
+                      style="width: 20px; height: 20px; cursor: pointer;"
                       <%= !item || item.is_active ? 'checked' : '' %>
                     />
-                    <span class="Polaris-Checkbox__Label">Active</span>
+                    <div>
+                      <span style="font-size: 16px; font-weight: 600; color: #2d3748;">Active Item</span>
+                      <p style="font-size: 13px; color: #718096; margin-top: 2px;">Make this item visible and available for verification</p>
+                    </div>
                   </label>
                 </div>
 
-                <div class="Polaris-FormLayout__Item">
-                  <div class="Polaris-InlineStack" style="gap: 12px;">
-                    <button type="submit" class="Polaris-Button Polaris-Button--primary">
-                      <span class="Polaris-Button__Content">
-                        <span class="Polaris-Button__Text"><%= isEdit ? 'Save Changes' : 'Add Item' %></span>
-                      </span>
-                    </button>
-                    <button type="button" class="Polaris-Button" onclick="navigate('/app/categories/<%= category.id %>/items')">
-                      <span class="Polaris-Button__Content">
-                        <span class="Polaris-Button__Text">Cancel</span>
-                      </span>
-                    </button>
-                  </div>
+                <div style="display: flex; gap: 12px; padding-top: 8px;">
+                  <button type="submit" style="flex: 1; padding: 16px 32px; background: #ed8936; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(237, 137, 54, 0.3);" onmouseover="this.style.background='#dd6b20'" onmouseout="this.style.background='#ed8936'">
+                    <%= isEdit ? '💾 Save Changes' : '✨ Add Item' %>
+                  </button>
+                  <button type="button" onclick="navigate('/app/categories/<%= category.id %>/items')" style="padding: 16px 32px; background: white; color: #4a5568; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='#cbd5e0'" onmouseout="this.style.borderColor='#e2e8f0'">
+                    Cancel
+                  </button>
                 </div>
               </div>
             </form>
-          </div>
         </div>
       </div>
     </div>
+  </div>
   </div>
 </div>
 

@@ -1,83 +1,103 @@
 <%- include('header') %>
+
+<style>
+  .categories-header {
+    background: linear-gradient(135deg, #4299e1 0%, #667eea 100%);
+    padding: 48px 32px;
+    margin: -20px -20px 32px -20px;
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .categories-title {
+    font-size: 42px !important;
+    font-weight: 700 !important;
+    color: white !important;
+    margin: 0 0 12px 0 !important;
+    letter-spacing: -0.5px;
+  }
+  .categories-subtitle {
+    font-size: 18px !important;
+    color: rgba(255,255,255,0.9) !important;
+    font-weight: 400 !important;
+  }
+  .category-table-row {
+    transition: background 0.2s;
+  }
+  .category-table-row:hover {
+    background: #f7fafc !important;
+  }
+</style>
+
 <div class="Polaris-Page">
-  <div class="Polaris-Page-Header">
-    <div class="Polaris-Page-Header__Row">
-      <div class="Polaris-Page-Header__BreadcrumbWrapper">
-        <nav role="navigation">
-          <a href="javascript:void(0)" onclick="navigate('/')" class="Polaris-Breadcrumbs__Breadcrumb">
-            <span class="Polaris-Breadcrumbs__Icon">
-              <svg viewBox="0 0 20 20"><path d="M17 9H5.414l3.293-3.293a1 1 0 10-1.414-1.414l-5 5a1 1 0 000 1.414l5 5a1 1 0 001.414-1.414L5.414 11H17a1 1 0 100-2z"></path></svg>
-            </span>
-            <span class="Polaris-Breadcrumbs__Content">Back</span>
-          </a>
-        </nav>
+  <div class="categories-header">
+    <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <a href="javascript:void(0)" onclick="navigate('/')" style="color: rgba(255,255,255,0.9); text-decoration: none; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 14px;">
+          <svg style="width: 16px; height: 16px;" viewBox="0 0 20 20" fill="currentColor"><path d="M17 9H5.414l3.293-3.293a1 1 0 10-1.414-1.414l-5 5a1 1 0 000 1.414l5 5a1 1 0 001.414-1.414L5.414 11H17a1 1 0 100-2z"></path></svg>
+          Back to Dashboard
+        </a>
+        <h1 class="categories-title">Categories</h1>
+        <p class="categories-subtitle">Organize your collectibles into manageable collections</p>
       </div>
-      <div class="Polaris-Page-Header__TitleWrapper">
-        <h1 class="Polaris-Header-Title">Categories</h1>
-      </div>
-      <div class="Polaris-Page-Header__RightAlign">
-        <button type="button" class="Polaris-Button Polaris-Button--primary" onclick="navigate('/app/categories/new')">
-          <span class="Polaris-Button__Content">
-            <span class="Polaris-Button__Text">Create Category</span>
-          </span>
-        </button>
-      </div>
+      <button type="button" class="Polaris-Button Polaris-Button--primary" onclick="navigate('/app/categories/new')" style="background: white; color: #4299e1; border: none; font-weight: 600; padding: 14px 24px; font-size: 16px;">
+        <span class="Polaris-Button__Content">
+          <span class="Polaris-Button__Text">+ Create Category</span>
+        </span>
+      </button>
     </div>
   </div>
 
+  <div style="padding: 0 32px;">
+
   <div class="Polaris-Page__Content">
     <% if (categories.length === 0) { %>
-      <div class="Polaris-EmptyState">
-        <div class="Polaris-EmptyState__ImageContainer">
-          <img src="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png" alt="No categories" class="Polaris-EmptyState__Image">
-        </div>
-        <div class="Polaris-EmptyState__Content">
-          <p class="Polaris-Text--root Polaris-Text--headingLg">No categories yet</p>
-          <div class="Polaris-EmptyState__Details">
-            <p>Create your first category to start tracking collectibles.</p>
-          </div>
-          <div class="Polaris-EmptyState__Actions">
-            <button type="button" class="Polaris-Button Polaris-Button--primary" onclick="navigate('/app/categories/new')">
-              <span class="Polaris-Button__Content">
-                <span class="Polaris-Button__Text">Create Category</span>
-              </span>
-            </button>
-          </div>
-        </div>
+      <div style="text-align: center; padding: 80px 32px; background: white; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 2px dashed #cbd5e0;">
+        <div style="font-size: 64px; margin-bottom: 24px;">📦</div>
+        <h2 style="font-size: 28px; font-weight: 700; color: #2d3748; margin-bottom: 12px;">No categories yet</h2>
+        <p style="font-size: 16px; color: #718096; margin-bottom: 32px; max-width: 400px; margin-left: auto; margin-right: auto;">Create your first category to start organizing and tracking your collectibles</p>
+        <button type="button" class="Polaris-Button Polaris-Button--primary" onclick="navigate('/app/categories/new')" style="background: #4299e1; border-color: #4299e1; padding: 14px 28px; font-size: 16px; font-weight: 600;">
+          <span class="Polaris-Button__Content">
+            <span class="Polaris-Button__Text">+ Create First Category</span>
+          </span>
+        </button>
       </div>
     <% } else { %>
       <div class="Polaris-Layout">
         <div class="Polaris-Layout__Section">
-          <div class="Polaris-Card">
+          <div class="Polaris-Card" style="border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); overflow: hidden;">
+            <div style="padding: 24px 28px; border-bottom: 1px solid #e2e8f0;">
+              <h2 style="font-size: 20px; font-weight: 700; color: #2d3748; margin: 0;">All Categories</h2>
+              <p style="font-size: 14px; color: #718096; margin-top: 4px;"><%= categories.length %> <%= categories.length === 1 ? 'category' : 'categories' %> total</p>
+            </div>
             <div class="Polaris-DataTable">
               <div class="Polaris-DataTable__ScrollContainer">
                 <table class="Polaris-DataTable__Table">
                   <thead>
-                    <tr>
-                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header">Name</th>
-                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header">Description</th>
-                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header">Status</th>
-                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header">Items</th>
-                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header">Actions</th>
+                    <tr style="background: #f7fafc;">
+                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header" style="padding: 16px 20px; font-weight: 700; font-size: 14px; color: #4a5568;">Name</th>
+                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header" style="padding: 16px 20px; font-weight: 700; font-size: 14px; color: #4a5568;">Description</th>
+                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header" style="padding: 16px 20px; font-weight: 700; font-size: 14px; color: #4a5568;">Status</th>
+                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header" style="padding: 16px 20px; font-weight: 700; font-size: 14px; color: #4a5568;">Items</th>
+                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header" style="padding: 16px 20px; font-weight: 700; font-size: 14px; color: #4a5568;">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     <% categories.forEach(category => { %>
-                      <tr class="Polaris-DataTable__TableRow">
-                        <td class="Polaris-DataTable__Cell"><%= category.name %></td>
-                        <td class="Polaris-DataTable__Cell"><%= category.description || '—' %></td>
-                        <td class="Polaris-DataTable__Cell">
+                      <tr class="Polaris-DataTable__TableRow category-table-row">
+                        <td class="Polaris-DataTable__Cell" style="padding: 20px; font-weight: 600; font-size: 15px; color: #2d3748;"><%= category.name %></td>
+                        <td class="Polaris-DataTable__Cell" style="padding: 20px; font-size: 14px; color: #718096;"><%= category.description || '—' %></td>
+                        <td class="Polaris-DataTable__Cell" style="padding: 20px;">
                           <% if (category.is_active) { %>
-                            <span class="Polaris-Badge Polaris-Badge--toneSuccess">Active</span>
+                            <span style="display: inline-block; padding: 6px 12px; background: #c6f6d5; color: #22543d; font-size: 13px; font-weight: 600; border-radius: 6px;">Active</span>
                           <% } else { %>
-                            <span class="Polaris-Badge Polaris-Badge--toneWarning">Inactive</span>
+                            <span style="display: inline-block; padding: 6px 12px; background: #fed7d7; color: #742a2a; font-size: 13px; font-weight: 600; border-radius: 6px;">Inactive</span>
                           <% } %>
                         </td>
-                        <td class="Polaris-DataTable__Cell"><%= category.item_count || 0 %> items</td>
-                        <td class="Polaris-DataTable__Cell">
-                          <button type="button" class="Polaris-Button Polaris-Button--plain" onclick="navigate('/app/categories/<%= category.id %>/items')">
+                        <td class="Polaris-DataTable__Cell" style="padding: 20px; font-size: 14px; color: #718096; font-weight: 500;"><%= category.item_count || 0 %> items</td>
+                        <td class="Polaris-DataTable__Cell" style="padding: 20px;">
+                          <button type="button" class="Polaris-Button" onclick="navigate('/app/categories/<%= category.id %>/items')" style="border-color: #4299e1; color: #4299e1; font-weight: 600;">
                             <span class="Polaris-Button__Content">
-                              <span class="Polaris-Button__Text">View Items</span>
+                              <span class="Polaris-Button__Text">View Items →</span>
                             </span>
                           </button>
                         </td>
@@ -91,6 +111,7 @@
         </div>
       </div>
     <% } %>
+  </div>
   </div>
 </div>
 

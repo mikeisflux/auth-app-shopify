@@ -1,93 +1,124 @@
 <%- include('header') %>
+
+<style>
+  .items-header {
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    padding: 48px 32px;
+    margin: -20px -20px 32px -20px;
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .items-title {
+    font-size: 42px !important;
+    font-weight: 700 !important;
+    color: white !important;
+    margin: 0 0 12px 0 !important;
+    letter-spacing: -0.5px;
+  }
+  .items-subtitle {
+    font-size: 18px !important;
+    color: rgba(255,255,255,0.9) !important;
+    font-weight: 400 !important;
+  }
+  .item-table-row {
+    transition: background 0.2s;
+  }
+  .item-table-row:hover {
+    background: #f7fafc !important;
+  }
+  .item-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid #e2e8f0;
+  }
+</style>
+
 <div class="Polaris-Page">
-  <div class="Polaris-Page-Header">
-    <div class="Polaris-Page-Header__Row">
-      <div class="Polaris-Page-Header__BreadcrumbWrapper">
-        <nav role="navigation">
-          <a href="javascript:void(0)" onclick="navigate('/app/categories')" class="Polaris-Breadcrumbs__Breadcrumb">
-            <span class="Polaris-Breadcrumbs__Content">Back to Categories</span>
-          </a>
-        </nav>
-      </div>
-      <div class="Polaris-Page-Header__TitleWrapper" style="text-align: center; width: 100%;">
-        <h1 class="Polaris-Header-Title" style="font-size: 28px; font-weight: 600; margin-bottom: 8px;"><%= category.name %></h1>
+  <div class="items-header">
+    <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <a href="javascript:void(0)" onclick="navigate('/app/categories')" style="color: rgba(255,255,255,0.9); text-decoration: none; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 14px;">
+          <svg style="width: 16px; height: 16px;" viewBox="0 0 20 20" fill="currentColor"><path d="M17 9H5.414l3.293-3.293a1 1 0 10-1.414-1.414l-5 5a1 1 0 000 1.414l5 5a1 1 0 001.414-1.414L5.414 11H17a1 1 0 100-2z"></path></svg>
+          Back to Categories
+        </a>
+        <h1 class="items-title"><%= category.name %></h1>
         <% if (category.description) { %>
-          <p class="Polaris-Text--root Polaris-Text--bodyMd" style="color: #6d7175; margin-top: 4px;"><%= category.description %></p>
+          <p class="items-subtitle"><%= category.description %></p>
+        <% } else { %>
+          <p class="items-subtitle">Manage collectible items in this category</p>
         <% } %>
       </div>
-      <div class="Polaris-Page-Header__RightAlign">
-        <button type="button" class="Polaris-Button Polaris-Button--primary" onclick="navigate('/app/categories/<%= category.id %>/items/new')">
-          <span class="Polaris-Button__Content">
-            <span class="Polaris-Button__Text">Add Item</span>
-          </span>
-        </button>
-      </div>
+      <button type="button" class="Polaris-Button Polaris-Button--primary" onclick="navigate('/app/categories/<%= category.id %>/items/new')" style="background: white; color: #48bb78; border: none; font-weight: 600; padding: 14px 24px; font-size: 16px;">
+        <span class="Polaris-Button__Content">
+          <span class="Polaris-Button__Text">+ Add Item</span>
+        </span>
+      </button>
     </div>
   </div>
 
+  <div style="padding: 0 32px;">
+
   <div class="Polaris-Page__Content">
     <% if (items.length === 0) { %>
-      <div class="Polaris-EmptyState">
-        <div class="Polaris-EmptyState__ImageContainer">
-          <img src="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png" alt="No items" class="Polaris-EmptyState__Image">
-        </div>
-        <div class="Polaris-EmptyState__Content">
-          <p class="Polaris-Text--root Polaris-Text--headingLg">No items yet</p>
-          <div class="Polaris-EmptyState__Details">
-            <p>Add your first collectible item to this category.</p>
-          </div>
-          <div class="Polaris-EmptyState__Actions">
-            <button type="button" class="Polaris-Button Polaris-Button--primary" onclick="navigate('/app/categories/<%= category.id %>/items/new')">
-              <span class="Polaris-Button__Content">
-                <span class="Polaris-Button__Text">Add Item</span>
-              </span>
-            </button>
-          </div>
-        </div>
+      <div style="text-align: center; padding: 80px 32px; background: white; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 2px dashed #cbd5e0;">
+        <div style="font-size: 64px; margin-bottom: 24px;">🎨</div>
+        <h2 style="font-size: 28px; font-weight: 700; color: #2d3748; margin-bottom: 12px;">No items yet</h2>
+        <p style="font-size: 16px; color: #718096; margin-bottom: 32px; max-width: 400px; margin-left: auto; margin-right: auto;">Add your first collectible item to this category with images and serial numbers</p>
+        <button type="button" class="Polaris-Button Polaris-Button--primary" onclick="navigate('/app/categories/<%= category.id %>/items/new')" style="background: #48bb78; border-color: #48bb78; padding: 14px 28px; font-size: 16px; font-weight: 600;">
+          <span class="Polaris-Button__Content">
+            <span class="Polaris-Button__Text">+ Add First Item</span>
+          </span>
+        </button>
       </div>
     <% } else { %>
       <div class="Polaris-Layout">
         <div class="Polaris-Layout__Section">
-          <div class="Polaris-Card">
+          <div class="Polaris-Card" style="border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); overflow: hidden;">
+            <div style="padding: 24px 28px; border-bottom: 1px solid #e2e8f0;">
+              <h2 style="font-size: 20px; font-weight: 700; color: #2d3748; margin: 0;">All Items</h2>
+              <p style="font-size: 14px; color: #718096; margin-top: 4px;"><%= items.length %> <%= items.length === 1 ? 'item' : 'items' %> in this category</p>
+            </div>
             <div class="Polaris-DataTable">
               <div class="Polaris-DataTable__ScrollContainer">
                 <table class="Polaris-DataTable__Table">
                   <thead>
-                    <tr>
-                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header">Image</th>
-                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header">Name</th>
-                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header">Serial Number</th>
-                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header">Status</th>
-                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header">Created</th>
-                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header">Actions</th>
+                    <tr style="background: #f7fafc;">
+                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header" style="padding: 16px 20px; font-weight: 700; font-size: 14px; color: #4a5568;">Image</th>
+                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header" style="padding: 16px 20px; font-weight: 700; font-size: 14px; color: #4a5568;">Name</th>
+                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header" style="padding: 16px 20px; font-weight: 700; font-size: 14px; color: #4a5568;">Serial Number</th>
+                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header" style="padding: 16px 20px; font-weight: 700; font-size: 14px; color: #4a5568;">Status</th>
+                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header" style="padding: 16px 20px; font-weight: 700; font-size: 14px; color: #4a5568;">Created</th>
+                      <th class="Polaris-DataTable__Cell Polaris-DataTable__Cell--header" style="padding: 16px 20px; font-weight: 700; font-size: 14px; color: #4a5568;">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     <% items.forEach(item => { %>
-                      <tr class="Polaris-DataTable__TableRow">
-                        <td class="Polaris-DataTable__Cell">
+                      <tr class="Polaris-DataTable__TableRow item-table-row">
+                        <td class="Polaris-DataTable__Cell" style="padding: 20px;">
                           <% if (item.image_url) { %>
-                            <img src="<%= item.image_url %>" alt="<%= item.name %>" style="max-width: 150px; max-height: 150px; width: auto; height: auto; object-fit: contain; border-radius: 4px; border: 1px solid #e1e3e5;">
+                            <img src="<%= item.image_url %>" alt="<%= item.name %>" class="item-image">
                           <% } else { %>
-                            <div style="width: 50px; height: 50px; background: #f6f6f7; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #8c9196; font-size: 10px;">No image</div>
+                            <div style="width: 80px; height: 80px; background: #f7fafc; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #a0aec0; font-size: 12px; border: 2px dashed #cbd5e0;">No image</div>
                           <% } %>
                         </td>
-                        <td class="Polaris-DataTable__Cell"><%= item.name %></td>
-                        <td class="Polaris-DataTable__Cell"><%= item.serial_number %></td>
-                        <td class="Polaris-DataTable__Cell">
+                        <td class="Polaris-DataTable__Cell" style="padding: 20px; font-weight: 600; font-size: 15px; color: #2d3748;"><%= item.name %></td>
+                        <td class="Polaris-DataTable__Cell" style="padding: 20px; font-size: 14px; color: #718096; font-family: monospace; font-weight: 500;"><%= item.serial_number %></td>
+                        <td class="Polaris-DataTable__Cell" style="padding: 20px;">
                           <% if (item.is_active) { %>
-                            <span class="Polaris-Badge Polaris-Badge--toneSuccess">Active</span>
+                            <span style="display: inline-block; padding: 6px 12px; background: #c6f6d5; color: #22543d; font-size: 13px; font-weight: 600; border-radius: 6px;">Active</span>
                           <% } else { %>
-                            <span class="Polaris-Badge Polaris-Badge--toneWarning">Inactive</span>
+                            <span style="display: inline-block; padding: 6px 12px; background: #fed7d7; color: #742a2a; font-size: 13px; font-weight: 600; border-radius: 6px;">Inactive</span>
                           <% } %>
                         </td>
-                        <td class="Polaris-DataTable__Cell">
+                        <td class="Polaris-DataTable__Cell" style="padding: 20px; font-size: 14px; color: #718096;">
                           <%= new Date(item.created_at).toLocaleDateString() %>
                         </td>
-                        <td class="Polaris-DataTable__Cell">
-                          <button type="button" class="Polaris-Button Polaris-Button--plain" onclick="navigate('/app/categories/<%= category.id %>/items/<%= item.id %>/edit')">
+                        <td class="Polaris-DataTable__Cell" style="padding: 20px;">
+                          <button type="button" class="Polaris-Button" onclick="navigate('/app/categories/<%= category.id %>/items/<%= item.id %>/edit')" style="border-color: #48bb78; color: #48bb78; font-weight: 600;">
                             <span class="Polaris-Button__Content">
-                              <span class="Polaris-Button__Text">Edit</span>
+                              <span class="Polaris-Button__Text">Edit →</span>
                             </span>
                           </button>
                         </td>
@@ -101,6 +132,7 @@
         </div>
       </div>
     <% } %>
+  </div>
   </div>
 </div>
 
