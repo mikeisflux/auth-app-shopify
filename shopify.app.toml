@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 name = "verify-my-collectible"
-client_id = "YOUR_CLIENT_ID_HERE"
+client_id = "34f3e8c2e51cd7a4c0c7cc27818a1968"
 application_url = "https://verifymycollectible.com"
 embedded = true
 
