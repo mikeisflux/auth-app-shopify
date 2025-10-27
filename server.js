@@ -504,6 +504,7 @@ app.get('/app/billing', ensureInstalled, async (req, res) => {
       subscription,
       plans,
       hasActiveSubscription: subscription?.subscription_status === 'active',
+      shop: shopDomain,
       host: req.query.host || '',
       apiKey: process.env.SHOPIFY_API_KEY
     });

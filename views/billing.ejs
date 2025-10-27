@@ -71,7 +71,7 @@
                   </div>
 
                   <% if (!hasActiveSubscription || subscription.subscription_plan !== plan.name) { %>
-                    <form method="POST" action="/api/billing/select-plan?shop=<%= encodeURIComponent(req.query.shop) %>&host=<%= encodeURIComponent(req.query.host || '') %>" style="display: inline;">
+                    <form method="POST" action="/api/billing/select-plan?shop=<%= encodeURIComponent(shop) %>&host=<%= encodeURIComponent(host) %>" style="display: inline;">
                       <input type="hidden" name="plan" value="<%= plan.name %>" />
                       <button type="submit" class="Polaris-Button Polaris-Button--primary">
                         <span class="Polaris-Button__Content">
