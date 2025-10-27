@@ -16,13 +16,9 @@ function navigate(path) {
 
   console.log('Navigating to:', path);
 
-  // Use App Bridge for embedded app navigation
-  if (window.appBridge) {
-    window.appBridge.redirect(path);
-  } else {
-    // Fallback to direct navigation
-    window.location.href = path;
-  }
+  // For Shopify embedded apps, use window.location.href for relative paths
+  // Shopify automatically handles the iframe routing
+  window.location.href = path;
 }
 
 // Show toast message
