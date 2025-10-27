@@ -100,29 +100,38 @@ export class FileUploadService {
   async uploadToStagedUrl(url, parameters, fileBuffer, filename, mimeType) {
     const formData = new FormData();
 
-    // Add all parameters from Shopify
+    // IMPORTANT: Add parameters FIRST, then file LAST
+    // Shopify requires this specific order
     parameters.forEach(param => {
       formData.append(param.name, param.value);
     });
 
-    // Add the file
+    // File must be LAST
     formData.append('file', fileBuffer, {
       filename: filename,
       contentType: mimeType
     });
 
-    // Don't manually set headers - let fetch handle them automatically
-    const response = await fetch(url, {
-      method: 'POST',
-      body: formData
+    // Use form-data's submit method for proper multipart handling
+    return new Promise((resolve, reject) => {
+      formData.submit(url, (err, res) => {
+        if (err) {
+          reject(new Error(`Failed to upload to staged URL: ${err.message}`));
+          return;
+        }
+
+        if (res.statusCode !== 200 && res.statusCode !== 201) {
+          let errorText = '';
+          res.on('data', chunk => errorText += chunk);
+          res.on('end', () => {
+            reject(new Error(`Failed to upload to staged URL: ${res.statusCode} ${errorText}`));
+          });
+        } else {
+          res.resume(); // Consume the response
+          resolve(res);
+        }
+      });
     });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to upload to staged URL: ${response.status} ${errorText}`);
-    }
-
-    return response;
   }
 
   /**
