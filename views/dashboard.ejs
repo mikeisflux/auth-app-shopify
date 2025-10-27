@@ -14,53 +14,12 @@
             </span>
           </button>
         </div>
-        <div class="Polaris-Page-Header__ActionGroup">
-          <button type="button" class="Polaris-Button" onclick="navigate('/app/billing')">
-            <span class="Polaris-Button__Content">
-              <span class="Polaris-Button__Text">Manage Subscription</span>
-            </span>
-          </button>
-        </div>
       </div>
     </div>
   </div>
 
   <div class="Polaris-Page__Content">
     <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-500);">
-
-      <!-- Subscription Banner -->
-      <% if (!hasActiveSubscription) { %>
-        <div class="Polaris-Banner Polaris-Banner--statusWarning">
-          <div class="Polaris-Banner__Ribbon">
-            <span class="Polaris-Icon Polaris-Icon--colorWarning">
-              <svg viewBox="0 0 20 20"><path d="M10 6a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 6zm0 9a1 1 0 100-2 1 1 0 000 2z"></path></svg>
-            </span>
-          </div>
-          <div class="Polaris-Banner__ContentWrapper">
-            <div class="Polaris-Banner__Heading">
-              <p class="Polaris-Text--root Polaris-Text--headingMd">Subscription Required</p>
-            </div>
-            <div class="Polaris-Banner__Content">
-              <p>Please select a subscription plan to start tracking your collectibles. Plans start at just $9.99/month for up to 2 categories.</p>
-            </div>
-            <div class="Polaris-Banner__Actions">
-              <button type="button" class="Polaris-Button Polaris-Button--outline" onclick="navigate('/app/billing')">
-                <span class="Polaris-Button__Content">
-                  <span class="Polaris-Button__Text">Choose Plan</span>
-                </span>
-              </button>
-            </div>
-          </div>
-        </div>
-      <% } else { %>
-        <div class="Polaris-Banner Polaris-Banner--statusSuccess">
-          <div class="Polaris-Banner__ContentWrapper">
-            <div class="Polaris-Banner__Content">
-              <p><strong><%= planDetails?.displayName %></strong> - <%= planDetails?.description %></p>
-            </div>
-          </div>
-        </div>
-      <% } %>
 
       <!-- Stats Cards -->
       <div class="Polaris-Layout">
@@ -82,27 +41,7 @@
               <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-200);">
                 <p class="Polaris-Text--root Polaris-Text--headingMd">Total Items</p>
                 <p class="Polaris-Text--root Polaris-Text--heading2xl"><%= stats.totalItems %></p>
-                <p class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--subdued">Collectibles tracked</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="Polaris-Layout__Section Polaris-Layout__Section--oneThird">
-          <div class="Polaris-Card">
-            <div class="Polaris-Card__Section">
-              <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-200);">
-                <p class="Polaris-Text--root Polaris-Text--headingMd">Subscription</p>
-                <p class="Polaris-Text--root Polaris-Text--heading2xl">
-                  <% if (hasActiveSubscription) { %>
-                    <span class="Polaris-Badge Polaris-Badge--toneSuccess">Active</span>
-                  <% } else { %>
-                    <span class="Polaris-Badge Polaris-Badge--toneWarning">Inactive</span>
-                  <% } %>
-                </p>
-                <p class="Polaris-Text--root Polaris-Text--bodySm Polaris-Text--subdued">
-                  <%= planDetails ? planDetails.displayName : 'No plan selected' %>
-                </p>
+                <p class="Polaris-Text--root Polaris-Text--subdued">Collectibles tracked</p>
               </div>
             </div>
           </div>
@@ -147,13 +86,11 @@
                 <% } else { %>
                   <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-300);">
                     <p class="Polaris-Text--root Polaris-Text--subdued">No categories yet. Create your first category to get started!</p>
-                    <% if (hasActiveSubscription) { %>
-                      <button type="button" class="Polaris-Button Polaris-Button--primary" onclick="navigate('/app/categories/new')">
-                        <span class="Polaris-Button__Content">
-                          <span class="Polaris-Button__Text">Create Category</span>
-                        </span>
-                      </button>
-                    <% } %>
+                    <button type="button" class="Polaris-Button Polaris-Button--primary" onclick="navigate('/app/categories/new')">
+                      <span class="Polaris-Button__Content">
+                        <span class="Polaris-Button__Text">Create Category</span>
+                      </span>
+                    </button>
                   </div>
                 <% } %>
               </div>
@@ -170,11 +107,10 @@
               <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-300);">
                 <p class="Polaris-Text--root Polaris-Text--headingMd">Quick Start Guide</p>
                 <div class="Polaris-BlockStack" style="--pc-block-stack-gap: var(--p-space-200);">
-                  <p>1. Choose a subscription plan based on your needs</p>
-                  <p>2. Create categories for your collectibles</p>
-                  <p>3. Add items with unique serial numbers and images</p>
-                  <p>4. Add the verification widget to your storefront</p>
-                  <p>5. Customers can verify their collectibles using serial numbers</p>
+                  <p>1. Create categories for your collectibles</p>
+                  <p>2. Add items with unique serial numbers and images</p>
+                  <p>3. Add the verification widget to your storefront</p>
+                  <p>4. Customers can verify their collectibles using serial numbers</p>
                 </div>
               </div>
             </div>

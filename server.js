@@ -7,7 +7,6 @@ import shopify from './app/config/shopify.js';
 import { ShopModel } from './app/models/shop.server.js';
 import { CategoryModel } from './app/models/category.server.js';
 import { ItemModel } from './app/models/item.server.js';
-import { BillingService } from './app/services/billing.server.js';
 import { FileUploadService } from './app/services/file-upload.server.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -133,11 +132,6 @@ app.get('/', async (req, res) => {
     // Otherwise, show embedded app dashboard
     const shopDomain = req.query.shop;
 
-    const subscription = await ShopModel.getSubscription(shopDomain);
-    const planDetails = subscription?.subscription_plan
-      ? BillingService.getPlanDetails(subscription.subscription_plan)
-      : null;
-
     const categories = await CategoryModel.findAll(shopDomain);
     const itemResult = await ItemModel.findAll(shopDomain, { limit: 1 });
 
@@ -149,10 +143,7 @@ app.get('/', async (req, res) => {
 
     res.render('dashboard', {
       stats,
-      subscription,
-      planDetails,
       categories: categories.slice(0, 5),
-      hasActiveSubscription: subscription?.subscription_status === 'active',
       host: req.query.host || '',
       apiKey: process.env.SHOPIFY_API_KEY
     });
@@ -487,88 +478,6 @@ app.post('/app/categories/:categoryId/items/:itemId', ensureInstalled, upload.si
     console.error('Error updating item:', error);
     res.status(500).json({ success: false, error: error.message });
   }
-});
-
-// Billing
-app.get('/app/billing', ensureInstalled, async (req, res) => {
-  try {
-    const shopDomain = req.query.shop;
-    if (!shopDomain) {
-      return res.status(400).send('Missing shop parameter');
-    }
-
-    const subscription = await ShopModel.getSubscription(shopDomain);
-    const plans = BillingService.getAvailablePlans();
-
-    res.render('billing', {
-      subscription,
-      plans,
-      hasActiveSubscription: subscription?.subscription_status === 'active',
-      shop: shopDomain,
-      host: req.query.host || '',
-      apiKey: process.env.SHOPIFY_API_KEY
-    });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).send('Error: ' + error.message);
-  }
-});
-
-app.post('/api/billing/select-plan', ensureInstalled, async (req, res) => {
-  try {
-    const shopDomain = req.query.shop;
-    if (!shopDomain) {
-      return res.status(400).send('Missing shop parameter');
-    }
-
-    // Load session from storage
-    const sessionId = shopify.api.session.getOfflineId(shopDomain);
-    const session = await shopify.config.sessionStorage.loadSession(sessionId);
-
-    if (!session) {
-      return res.status(401).send('No session found. Please reinstall the app.');
-    }
-
-    const { plan } = req.body;
-    const billingService = new BillingService(session);
-
-    const result = await billingService.createCharge(plan);
-
-    // Redirect to Shopify's billing confirmation page
-    res.redirect(result.confirmationUrl);
-  } catch (error) {
-    console.error('Billing error:', error);
-    res.status(500).send('Error: ' + error.message);
-  }
-});
-
-app.post('/api/billing/cancel', ensureInstalled, async (req, res) => {
-  try {
-    const shopDomain = req.query.shop;
-    if (!shopDomain) {
-      return res.status(400).json({ success: false, error: 'Missing shop parameter' });
-    }
-
-    // Load session from storage
-    const sessionId = shopify.api.session.getOfflineId(shopDomain);
-    const session = await shopify.config.sessionStorage.loadSession(sessionId);
-
-    if (!session) {
-      return res.status(401).json({ success: false, error: 'No session found' });
-    }
-
-    const billingService = new BillingService(session);
-    await billingService.cancelSubscription();
-
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-app.get('/api/billing/callback', ensureInstalled, (req, res) => {
-  res.redirect(`/app/billing?shop=${req.query.shop}&host=${req.query.host || ''}`);
 });
 
 // Error handler
