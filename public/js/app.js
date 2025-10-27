@@ -143,8 +143,14 @@ async function handleItemSubmit(event) {
       const hasImage = formData.get('image') && formData.get('image').size > 0;
 
       if (hasImage && result.item.shopify_file_id && !result.item.image_url) {
-        // Image uploaded but URL not ready yet - show processing message
+        // Image uploaded but URL not ready yet - show processing overlay
         showToast('Item saved! Processing image...', false);
+
+        // Show loading overlay
+        const overlay = document.getElementById('image-processing-overlay');
+        if (overlay) {
+          overlay.style.display = 'flex';
+        }
 
         // Wait 5 seconds then fetch the image URL
         setTimeout(async () => {
@@ -162,6 +168,12 @@ async function handleItemSubmit(event) {
             const imageResult = await imageResponse.json();
             console.log('Image URL fetch result:', imageResult);
 
+            // Hide loading overlay
+            const overlay = document.getElementById('image-processing-overlay');
+            if (overlay) {
+              overlay.style.display = 'none';
+            }
+
             if (imageResult.success) {
               showToast('Image ready! Redirecting...', false);
               setTimeout(() => {
@@ -177,6 +189,13 @@ async function handleItemSubmit(event) {
             }
           } catch (error) {
             console.error('Error fetching image URL:', error);
+
+            // Hide loading overlay
+            const overlay = document.getElementById('image-processing-overlay');
+            if (overlay) {
+              overlay.style.display = 'none';
+            }
+
             showToast('Item saved successfully', false);
             setTimeout(() => {
               const categoryId = form.dataset.categoryId;
