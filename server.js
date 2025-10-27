@@ -15,10 +15,6 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-
 // Configure multer for file uploads
 const upload = multer({
   limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
@@ -59,6 +55,15 @@ app.get(
     }
   }
 );
+
+// Health check endpoint for webhooks (no HMAC required)
+app.get('/webhooks/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    message: 'Webhook endpoint is accessible',
+    timestamp: new Date().toISOString()
+  });
+});
 
 // Webhooks
 app.post(shopify.config.webhooks.path, shopify.processWebhooks({ webhookHandlers: {
@@ -121,6 +126,10 @@ app.post(shopify.config.webhooks.path, shopify.processWebhooks({ webhookHandlers
     }
   }
 }}));
+
+// Body parsing middleware (AFTER webhooks so HMAC verification works)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Custom middleware for embedded apps - just verify shop query param
 const ensureInstalled = async (req, res, next) => {
