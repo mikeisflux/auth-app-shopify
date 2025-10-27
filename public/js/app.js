@@ -15,8 +15,14 @@ function navigate(path) {
   }
 
   console.log('Navigating to:', path);
-  // Use direct navigation for server-side routing
-  window.location.href = path;
+
+  // Use App Bridge for embedded app navigation
+  if (window.appBridge) {
+    window.appBridge.redirect(path);
+  } else {
+    // Fallback to direct navigation
+    window.location.href = path;
+  }
 }
 
 // Show toast message
