@@ -178,17 +178,28 @@ export class FileUploadService {
 
     const file = response.data.fileCreate.files[0];
 
+    console.log('📝 File record created:', JSON.stringify(file, null, 2));
+
     // Handle different file types (GenericFile vs MediaImage)
     if (file.image) {
+      console.log('✓ MediaImage detected, URL:', file.image.url);
       return {
         id: file.id,
         url: file.image.url,
         alt: file.alt
       };
-    } else {
+    } else if (file.url) {
+      console.log('✓ GenericFile detected, URL:', file.url);
       return {
         id: file.id,
         url: file.url,
+        alt: file.alt
+      };
+    } else {
+      console.error('❌ No URL found in file response');
+      return {
+        id: file.id,
+        url: null,
         alt: file.alt
       };
     }
