@@ -66,51 +66,58 @@ app.post(shopify.config.webhooks.path, shopify.processWebhooks({ webhookHandlers
     deliveryMethod: 'http',
     callbackUrl: '/webhooks',
     callback: async (topic, shop, body) => {
-      console.log('App uninstalled:', shop);
-      await ShopModel.markUninstalled(shop);
+      try {
+        console.log('App uninstalled webhook received for shop:', shop);
+        await ShopModel.markUninstalled(shop);
+        console.log('Successfully marked shop as uninstalled:', shop);
+      } catch (error) {
+        console.error('Error in APP_UNINSTALLED webhook:', error);
+        // Don't throw - always acknowledge webhook receipt
+      }
     }
   },
   CUSTOMERS_DATA_REQUEST: {
     deliveryMethod: 'http',
     callbackUrl: '/webhooks',
     callback: async (topic, shop, body) => {
-      console.log('Customer data request received for shop:', shop);
-
-      // This app stores verification logs (IP addresses, timestamps) but does NOT
-      // store customer IDs or link verification logs to specific customer accounts.
-      // Therefore, there is no customer-specific data to export.
-
-      console.log('GDPR Compliance: This app does not store customer-identifiable data.');
-      console.log('Verification logs are anonymous and cannot be linked to specific customers.');
-
-      // Shopify requirement satisfied: App acknowledges request and confirms
-      // no customer data is stored that can be exported.
+      try {
+        console.log('CUSTOMERS_DATA_REQUEST webhook received for shop:', shop);
+        console.log('GDPR Compliance: This app does not store customer-identifiable data.');
+        console.log('Verification logs are anonymous (IP-based, no customer IDs).');
+        // Webhook acknowledged - no customer data to export
+      } catch (error) {
+        console.error('Error in CUSTOMERS_DATA_REQUEST webhook:', error);
+        // Don't throw - always acknowledge webhook receipt
+      }
     }
   },
   CUSTOMERS_REDACT: {
     deliveryMethod: 'http',
     callbackUrl: '/webhooks',
     callback: async (topic, shop, body) => {
-      console.log('Customer redaction request for shop:', shop);
-
-      // This app stores verification logs (IP addresses, timestamps) but does NOT
-      // store customer IDs or link verification logs to specific customer accounts.
-      // Therefore, there is no customer-specific data to delete.
-
-      console.log('GDPR Compliance: This app does not store customer-identifiable data.');
-      console.log('Verification logs are anonymous and cannot be linked to specific customers.');
-
-      // Shopify requirement satisfied: App acknowledges request and confirms
-      // no customer data is stored that needs redaction.
+      try {
+        console.log('CUSTOMERS_REDACT webhook received for shop:', shop);
+        console.log('GDPR Compliance: This app does not store customer-identifiable data.');
+        console.log('Verification logs are anonymous (IP-based, no customer IDs).');
+        // Webhook acknowledged - no customer data to redact
+      } catch (error) {
+        console.error('Error in CUSTOMERS_REDACT webhook:', error);
+        // Don't throw - always acknowledge webhook receipt
+      }
     }
   },
   SHOP_REDACT: {
     deliveryMethod: 'http',
     callbackUrl: '/webhooks',
     callback: async (topic, shop, body) => {
-      console.log('Shop redaction request for shop:', shop);
-      // Delete shop data within 48 hours after app uninstall
-      await ShopModel.delete(shop);
+      try {
+        console.log('SHOP_REDACT webhook received for shop:', shop);
+        await ShopModel.delete(shop);
+        console.log('Successfully deleted all data for shop:', shop);
+      } catch (error) {
+        console.error('Error in SHOP_REDACT webhook:', error);
+        // Don't throw - always acknowledge webhook receipt
+      }
     }
   }
 }}));
