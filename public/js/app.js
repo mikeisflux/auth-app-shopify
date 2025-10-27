@@ -67,8 +67,22 @@ async function handleCategorySubmit(event) {
   const formData = new FormData(form);
   const data = Object.fromEntries(formData.entries());
 
+  // Add shop and host params to the action URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const shop = urlParams.get('shop');
+  const host = urlParams.get('host');
+
+  let actionUrl = form.action;
+  if (shop) {
+    const separator = actionUrl.includes('?') ? '&' : '?';
+    actionUrl += `${separator}shop=${encodeURIComponent(shop)}`;
+    if (host) {
+      actionUrl += `&host=${encodeURIComponent(host)}`;
+    }
+  }
+
   try {
-    const result = await submitForm(form.action, data, form.method);
+    const result = await submitForm(actionUrl, data, form.method);
 
     if (result.success) {
       showToast('Category saved successfully');
