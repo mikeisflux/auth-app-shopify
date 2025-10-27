@@ -97,19 +97,16 @@ export class BillingService {
     const baseUrl = resolveAppBaseUrl();
     const returnUrl = new URL("/api/billing/callback", baseUrl).toString();
 
-    const response = await client.query({
-      data: {
-        query: mutation,
-        variables: {
-          name: plan.displayName,
-          price: plan.price,
-          returnUrl
-        }
+    const response = await client.request(mutation, {
+      variables: {
+        name: plan.displayName,
+        price: plan.price,
+        returnUrl
       }
     });
 
-    const { appSubscription, confirmationUrl, userErrors } = 
-      response.body.data.appSubscriptionCreate;
+    const { appSubscription, confirmationUrl, userErrors } =
+      response.data.appSubscriptionCreate;
 
     if (userErrors && userErrors.length > 0) {
       throw new Error(userErrors[0].message);
@@ -225,14 +222,11 @@ export class BillingService {
       }
     `;
 
-    const response = await client.query({
-      data: {
-        query,
-        variables: { id: subscriptionId }
-      }
+    const response = await client.request(query, {
+      variables: { id: subscriptionId }
     });
 
-    return response.body.data.node;
+    return response.data.node;
   }
 
   // Cancel subscription
@@ -260,14 +254,11 @@ export class BillingService {
       }
     `;
 
-    const response = await client.query({
-      data: {
-        query: mutation,
-        variables: { id: subscription.billing_id }
-      }
+    const response = await client.request(mutation, {
+      variables: { id: subscription.billing_id }
     });
 
-    const { userErrors } = response.body.data.appSubscriptionCancel;
+    const { userErrors } = response.data.appSubscriptionCancel;
 
     if (userErrors && userErrors.length > 0) {
       throw new Error(userErrors[0].message);
