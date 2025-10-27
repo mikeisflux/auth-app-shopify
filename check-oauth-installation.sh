@@ -3,11 +3,22 @@
 echo "=== Checking OAuth Installation and Webhook Registration ==="
 echo ""
 
+# Load DATABASE_URL from .env file
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | grep DATABASE_URL | xargs)
+fi
+
+if [ -z "$DATABASE_URL" ]; then
+    echo "❌ DATABASE_URL not found in .env file"
+    echo "Please update .env with your actual PostgreSQL connection string"
+    echo ""
+fi
+
 echo "1. Check database for installed shops..."
 echo "Connecting to database..."
 
 # Check if shop is in database
-psql $DATABASE_URL -c "SELECT shop_domain, access_token IS NOT NULL as has_token, scope, is_active, created_at FROM shops ORDER BY created_at DESC LIMIT 5;" 2>/dev/null || echo "❌ Could not connect to database. Set DATABASE_URL environment variable."
+psql "$DATABASE_URL" -c "SELECT shop_domain, access_token IS NOT NULL as has_token, scope, is_active, created_at FROM shops ORDER BY created_at DESC LIMIT 5;" 2>/dev/null || echo "❌ Could not connect to database. Check DATABASE_URL in .env file."
 
 echo ""
 echo "2. Check nginx logs for OAuth callback requests..."
@@ -28,7 +39,7 @@ echo ""
 echo "5. Test if shop has active session..."
 SHOP="test1-239283829347123859138630.myshopify.com"
 echo "Checking sessions table for shop: $SHOP"
-psql $DATABASE_URL -c "SELECT id, shop, expires FROM shopify_sessions WHERE shop = '$SHOP' ORDER BY expires DESC LIMIT 3;" 2>/dev/null || echo "❌ Could not query sessions table"
+psql "$DATABASE_URL" -c "SELECT id, shop, expires FROM shopify_sessions WHERE shop = '$SHOP' ORDER BY expires DESC LIMIT 3;" 2>/dev/null || echo "❌ Could not query sessions table"
 
 echo ""
 echo "=== Diagnosis Complete ==="
