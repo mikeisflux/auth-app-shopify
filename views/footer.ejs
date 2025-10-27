@@ -6,6 +6,22 @@
     // window.shopify is provided by Shopify and contains the admin API
     console.log('Shopify admin context available:', !!window.shopify);
 
+    // Initialize App Bridge if we have the necessary parameters
+    <% if (typeof apiKey !== 'undefined' && typeof host !== 'undefined' && host) { %>
+      // Initialize Shopify App Bridge
+      if (window.shopify && window.shopify.idToken) {
+        // Modern Shopify embedded app - use shopify object directly
+        window.appBridge = window.shopify;
+      } else if (typeof createApp !== 'undefined') {
+        // Fallback to classic App Bridge
+        window.appBridge = createApp({
+          apiKey: '<%= apiKey %>',
+          host: '<%= host %>'
+        });
+      }
+      console.log('App Bridge initialized:', !!window.appBridge);
+    <% } %>
+
     // Make toast helper available globally if needed
     if (window.shopify && window.shopify.toast) {
       window.shopifyToast = function(message, isError = false) {
