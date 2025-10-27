@@ -502,9 +502,9 @@ app.post('/app/categories/:categoryId/items/:itemId', ensureInstalled, upload.si
       isActive: isActive === 'on' || isActive === 'true'
     };
 
-    // Only update image fields if a new image was uploaded
-    if (imageUrl) {
-      updateData.imageUrl = imageUrl;
+    // Update image fields if a new image was uploaded (even if URL is null and needs processing)
+    if (shopifyFileId) {
+      updateData.imageUrl = imageUrl; // May be null initially, will be updated after processing
       updateData.shopifyFileId = shopifyFileId;
     }
 
