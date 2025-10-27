@@ -118,17 +118,30 @@ async function handleItemSubmit(event) {
     }
   }
 
+  console.log('Submitting item form to:', actionUrl);
+
   try {
     const response = await fetch(actionUrl, {
       method: form.method,
       body: formData
     });
 
+    console.log('Response status:', response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Server error:', errorText);
+      showToast('Error saving item: Server returned ' + response.status, true);
+      return;
+    }
+
     const result = await response.json();
+    console.log('Response data:', result);
 
     if (result.success) {
       if (result.warning) {
         showToast('Item saved but ' + result.warning, true);
+        console.warn('Upload warning:', result.warning);
       } else {
         showToast('Item saved successfully');
       }
@@ -141,7 +154,7 @@ async function handleItemSubmit(event) {
     }
   } catch (error) {
     console.error('Item submit error:', error);
-    showToast('Error saving item', true);
+    showToast('Error saving item: ' + error.message, true);
   }
 }
 
