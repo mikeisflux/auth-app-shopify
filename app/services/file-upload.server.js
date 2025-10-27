@@ -111,10 +111,10 @@ export class FileUploadService {
       contentType: mimeType
     });
 
+    // Don't manually set headers - let fetch handle them automatically
     const response = await fetch(url, {
       method: 'POST',
-      body: formData,
-      headers: formData.getHeaders()
+      body: formData
     });
 
     if (!response.ok) {
