@@ -65,8 +65,12 @@ app.get('/webhooks/health', (req, res) => {
   });
 });
 
-// Webhooks
-app.post(shopify.config.webhooks.path, shopify.processWebhooks({ webhookHandlers: {
+// Webhooks - use express.text() so req.body is a string for HMAC verification
+// The Shopify API library needs raw text body to verify HMAC signatures
+app.post(
+  shopify.config.webhooks.path,
+  express.text({ type: '*/*' }),
+  shopify.processWebhooks({ webhookHandlers: {
   APP_UNINSTALLED: {
     deliveryMethod: 'http',
     callbackUrl: '/webhooks',
