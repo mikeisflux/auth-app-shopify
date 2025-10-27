@@ -180,16 +180,27 @@ export class FileUploadService {
 
     console.log('📝 File record created:', JSON.stringify(file, null, 2));
 
+    // For MediaImage, the URL might not be immediately available
+    // Query the file again to get the processed URL
+    if (file.id && file.id.includes('MediaImage')) {
+      console.log('🔄 MediaImage detected, querying for URL...');
+      const fileWithUrl = await this.getFileById(file.id);
+      if (fileWithUrl && fileWithUrl.url) {
+        console.log('✓ Got URL from file query:', fileWithUrl.url);
+        return fileWithUrl;
+      }
+    }
+
     // Handle different file types (GenericFile vs MediaImage)
-    if (file.image) {
-      console.log('✓ MediaImage detected, URL:', file.image.url);
+    if (file.image && file.image.url) {
+      console.log('✓ MediaImage with URL:', file.image.url);
       return {
         id: file.id,
         url: file.image.url,
         alt: file.alt
       };
     } else if (file.url) {
-      console.log('✓ GenericFile detected, URL:', file.url);
+      console.log('✓ GenericFile with URL:', file.url);
       return {
         id: file.id,
         url: file.url,
@@ -203,6 +214,58 @@ export class FileUploadService {
         alt: file.alt
       };
     }
+  }
+
+  /**
+   * Query a file by ID to get its URL
+   */
+  async getFileById(fileId) {
+    const query = `
+      query getFile($id: ID!) {
+        node(id: $id) {
+          ... on GenericFile {
+            id
+            url
+            alt
+          }
+          ... on MediaImage {
+            id
+            image {
+              url
+            }
+            alt
+          }
+        }
+      }
+    `;
+
+    const variables = { id: fileId };
+
+    const response = await this.graphqlRequest(query, variables);
+
+    if (!response.data.node) {
+      console.warn('⚠️ File not found by ID:', fileId);
+      return null;
+    }
+
+    const file = response.data.node;
+
+    // Extract URL based on file type
+    if (file.image && file.image.url) {
+      return {
+        id: file.id,
+        url: file.image.url,
+        alt: file.alt
+      };
+    } else if (file.url) {
+      return {
+        id: file.id,
+        url: file.url,
+        alt: file.alt
+      };
+    }
+
+    return null;
   }
 
   /**
