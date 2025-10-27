@@ -139,16 +139,65 @@ async function handleItemSubmit(event) {
     console.log('Response data:', result);
 
     if (result.success) {
-      if (result.warning) {
+      // Check if image needs processing
+      const hasImage = formData.get('image') && formData.get('image').size > 0;
+
+      if (hasImage && result.item.shopify_file_id && !result.item.image_url) {
+        // Image uploaded but URL not ready yet - show processing message
+        showToast('Item saved! Processing image...', false);
+
+        // Wait 5 seconds then fetch the image URL
+        setTimeout(async () => {
+          try {
+            const fetchUrl = `/api/fetch-image-url?shop=${encodeURIComponent(shop)}${host ? '&host=' + encodeURIComponent(host) : ''}`;
+            const imageResponse = await fetch(fetchUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                fileId: result.item.shopify_file_id,
+                itemId: result.item.id
+              })
+            });
+
+            const imageResult = await imageResponse.json();
+            console.log('Image URL fetch result:', imageResult);
+
+            if (imageResult.success) {
+              showToast('Image ready! Redirecting...', false);
+              setTimeout(() => {
+                const categoryId = form.dataset.categoryId;
+                navigate(`/app/categories/${categoryId}/items`);
+              }, 1000);
+            } else {
+              showToast('Item saved, but image still processing', false);
+              setTimeout(() => {
+                const categoryId = form.dataset.categoryId;
+                navigate(`/app/categories/${categoryId}/items`);
+              }, 1500);
+            }
+          } catch (error) {
+            console.error('Error fetching image URL:', error);
+            showToast('Item saved successfully', false);
+            setTimeout(() => {
+              const categoryId = form.dataset.categoryId;
+              navigate(`/app/categories/${categoryId}/items`);
+            }, 1500);
+          }
+        }, 5000); // 5 second delay
+      } else if (result.warning) {
         showToast('Item saved but ' + result.warning, true);
         console.warn('Upload warning:', result.warning);
+        setTimeout(() => {
+          const categoryId = form.dataset.categoryId;
+          navigate(`/app/categories/${categoryId}/items`);
+        }, 1500);
       } else {
         showToast('Item saved successfully');
+        setTimeout(() => {
+          const categoryId = form.dataset.categoryId;
+          navigate(`/app/categories/${categoryId}/items`);
+        }, 1500);
       }
-      setTimeout(() => {
-        const categoryId = form.dataset.categoryId;
-        navigate(`/app/categories/${categoryId}/items`);
-      }, 1500);
     } else {
       showToast('Error saving item: ' + result.error, true);
     }

@@ -391,6 +391,51 @@ app.post('/app/categories/:categoryId/items', ensureInstalled, upload.single('im
   }
 });
 
+// API endpoint to fetch image URL after Shopify processing
+app.post('/api/fetch-image-url', ensureInstalled, async (req, res) => {
+  try {
+    const shopDomain = req.query.shop;
+    const { fileId, itemId } = req.body;
+
+    if (!shopDomain || !fileId || !itemId) {
+      return res.status(400).json({ success: false, error: 'Missing required parameters' });
+    }
+
+    // Get shop access token
+    const shop = await ShopModel.findByDomain(shopDomain);
+    if (!shop || !shop.access_token) {
+      return res.status(401).json({ success: false, error: 'Shop not authenticated' });
+    }
+
+    // Create session for file service
+    const session = {
+      shop: shopDomain,
+      accessToken: shop.access_token,
+      scope: shop.scope
+    };
+
+    // Query Shopify for the file URL (with retries)
+    const fileUploadService = new FileUploadService(session);
+    const fileWithUrl = await fileUploadService.getFileById(fileId, 5); // 5 retries with delays
+
+    if (fileWithUrl && fileWithUrl.url) {
+      // Update the item with the URL
+      await ItemModel.update(itemId, shopDomain, {
+        imageUrl: fileWithUrl.url
+      });
+
+      console.log('✅ Image URL fetched and item updated:', fileWithUrl.url);
+      return res.json({ success: true, url: fileWithUrl.url });
+    } else {
+      console.warn('⚠️ Image URL still not available after retries');
+      return res.json({ success: false, error: 'Image still processing, try again later' });
+    }
+  } catch (error) {
+    console.error('Error fetching image URL:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 app.post('/app/categories/:categoryId/items/:itemId', ensureInstalled, upload.single('image'), async (req, res) => {
   try {
     const shopDomain = req.query.shop;

@@ -136,6 +136,7 @@ export class FileUploadService {
 
   /**
    * Step 3: Create the file record in Shopify
+   * Returns immediately with file ID - URL will be available after processing
    */
   async createFileRecord(resourceUrl, filename) {
     const mutation = `
@@ -180,46 +181,35 @@ export class FileUploadService {
 
     console.log('📝 File record created:', JSON.stringify(file, null, 2));
 
-    // For MediaImage, the URL might not be immediately available
-    // Query the file again to get the processed URL
-    if (file.id && file.id.includes('MediaImage')) {
-      console.log('🔄 MediaImage detected, querying for URL...');
-      const fileWithUrl = await this.getFileById(file.id);
-      if (fileWithUrl && fileWithUrl.url) {
-        console.log('✓ Got URL from file query:', fileWithUrl.url);
-        return fileWithUrl;
-      }
+    // Return immediately with file ID
+    // URL will be fetched later after Shopify processes the image
+    const result = {
+      id: file.id,
+      url: null,
+      alt: file.alt,
+      needsProcessing: file.id.includes('MediaImage')
+    };
+
+    // Try to get URL if immediately available (for GenericFile or already processed)
+    if (file.image && file.image.url) {
+      console.log('✓ URL immediately available:', file.image.url);
+      result.url = file.image.url;
+      result.needsProcessing = false;
+    } else if (file.url) {
+      console.log('✓ URL immediately available:', file.url);
+      result.url = file.url;
+      result.needsProcessing = false;
+    } else {
+      console.log('⏳ URL not ready yet - needs processing');
     }
 
-    // Handle different file types (GenericFile vs MediaImage)
-    if (file.image && file.image.url) {
-      console.log('✓ MediaImage with URL:', file.image.url);
-      return {
-        id: file.id,
-        url: file.image.url,
-        alt: file.alt
-      };
-    } else if (file.url) {
-      console.log('✓ GenericFile with URL:', file.url);
-      return {
-        id: file.id,
-        url: file.url,
-        alt: file.alt
-      };
-    } else {
-      console.error('❌ No URL found in file response');
-      return {
-        id: file.id,
-        url: null,
-        alt: file.alt
-      };
-    }
+    return result;
   }
 
   /**
-   * Query a file by ID to get its URL
+   * Query a file by ID to get its URL (with retry logic for processing delays)
    */
-  async getFileById(fileId) {
+  async getFileById(fileId, maxRetries = 3) {
     const query = `
       query getFile($id: ID!) {
         node(id: $id) {
@@ -241,28 +231,46 @@ export class FileUploadService {
 
     const variables = { id: fileId };
 
-    const response = await this.graphqlRequest(query, variables);
+    // Retry with delays to wait for Shopify to process the image
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      const response = await this.graphqlRequest(query, variables);
 
-    if (!response.data.node) {
-      console.warn('⚠️ File not found by ID:', fileId);
-      return null;
-    }
+      if (!response.data.node) {
+        console.warn(`⚠️ File not found by ID (attempt ${attempt}/${maxRetries}):`, fileId);
+        if (attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // 1s, 2s, 3s delays
+          continue;
+        }
+        return null;
+      }
 
-    const file = response.data.node;
+      const file = response.data.node;
+      console.log(`📊 File query response (attempt ${attempt}/${maxRetries}):`, JSON.stringify(file, null, 2));
 
-    // Extract URL based on file type
-    if (file.image && file.image.url) {
-      return {
-        id: file.id,
-        url: file.image.url,
-        alt: file.alt
-      };
-    } else if (file.url) {
-      return {
-        id: file.id,
-        url: file.url,
-        alt: file.alt
-      };
+      // Extract URL based on file type
+      if (file.image && file.image.url) {
+        console.log(`✓ Got URL on attempt ${attempt}:`, file.image.url);
+        return {
+          id: file.id,
+          url: file.image.url,
+          alt: file.alt
+        };
+      } else if (file.url) {
+        console.log(`✓ Got URL on attempt ${attempt}:`, file.url);
+        return {
+          id: file.id,
+          url: file.url,
+          alt: file.alt
+        };
+      }
+
+      // No URL yet - retry if we have attempts left
+      if (attempt < maxRetries) {
+        console.log(`⏳ No URL yet, waiting ${attempt}s before retry...`);
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+      } else {
+        console.warn('❌ Max retries reached, URL still not available');
+      }
     }
 
     return null;
