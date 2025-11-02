@@ -17,6 +17,7 @@ import { CategoryModel } from "../models/category.server";
 import { ItemModel } from "../models/item.server";
 import { ShopModel } from "../models/shop.server";
 import { BillingService } from "../services/billing.server";
+import { WholesaleModel } from "../models/wholesale.server";
 
 export const loader = async ({ request }) => {
   const { session } = await authenticate.admin(request);
@@ -34,6 +35,9 @@ export const loader = async ({ request }) => {
   const categories = await CategoryModel.findAll(shopDomain);
   const itemStats = await ItemModel.findAll(shopDomain, { limit: 1 });
 
+  // Get wholesale statistics
+  const wholesaleStats = await WholesaleModel.getStatistics(shopDomain);
+
   const stats = {
     totalCategories: categories.length,
     totalItems: itemStats.total,
@@ -42,6 +46,7 @@ export const loader = async ({ request }) => {
 
   return json({
     stats,
+    wholesaleStats,
     subscription,
     planDetails,
     categories: categories.slice(0, 5), // Show only first 5 on dashboard
@@ -49,7 +54,7 @@ export const loader = async ({ request }) => {
 };
 
 export default function Index() {
-  const { stats, subscription, planDetails, categories } = useLoaderData();
+  const { stats, wholesaleStats, subscription, planDetails, categories } = useLoaderData();
   const navigate = useNavigate();
 
   const hasActiveSubscription = subscription?.subscription_status === 'active';
@@ -133,6 +138,62 @@ export default function Index() {
                 <Text variant="bodySm" tone="subdued">
                   {currentPlan ? currentPlan.displayName : 'No plan selected'}
                 </Text>
+              </BlockStack>
+            </Card>
+          </Layout.Section>
+        </Layout>
+
+        {/* Wholesale Portal Tile */}
+        <Layout>
+          <Layout.Section>
+            <Card>
+              <BlockStack gap="400">
+                <Text variant="headingLg" as="h2">Wholesale Portal</Text>
+                <Text variant="bodyMd" tone="subdued">
+                  Manage wholesale pricing, customers, and fulfillment for comic shops and online retailers.
+                </Text>
+
+                <Layout>
+                  <Layout.Section variant="oneThird">
+                    <Card background="bg-surface-secondary">
+                      <BlockStack gap="200">
+                        <Text variant="headingMd" as="h2">Pricing Rules</Text>
+                        <Text variant="heading2xl" as="p">{wholesaleStats?.active_pricing_rules || 0}</Text>
+                        <Text variant="bodySm" tone="subdued">Active rules</Text>
+                      </BlockStack>
+                    </Card>
+                  </Layout.Section>
+
+                  <Layout.Section variant="oneThird">
+                    <Card background="bg-surface-secondary">
+                      <BlockStack gap="200">
+                        <Text variant="headingMd" as="h2">Customers</Text>
+                        <Text variant="heading2xl" as="p">{wholesaleStats?.approved_customers || 0}</Text>
+                        <Text variant="bodySm" tone="subdued">
+                          {wholesaleStats?.total_customers || 0} total
+                        </Text>
+                      </BlockStack>
+                    </Card>
+                  </Layout.Section>
+
+                  <Layout.Section variant="oneThird">
+                    <Card background="bg-surface-secondary">
+                      <BlockStack gap="200">
+                        <Text variant="headingMd" as="h2">Revenue</Text>
+                        <Text variant="heading2xl" as="p">
+                          ${parseFloat(wholesaleStats?.total_revenue || 0).toFixed(2)}
+                        </Text>
+                        <Text variant="bodySm" tone="subdued">
+                          {wholesaleStats?.total_orders || 0} orders
+                        </Text>
+                      </BlockStack>
+                    </Card>
+                  </Layout.Section>
+                </Layout>
+
+                <Button variant="primary" onClick={() => navigate('/app/wholesale')}>
+                  Open Wholesale Portal
+                </Button>
               </BlockStack>
             </Card>
           </Layout.Section>
