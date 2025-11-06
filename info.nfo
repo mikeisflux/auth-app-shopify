@@ -1,0 +1,57 @@
+shopify-kickstarter-app/
+├── backend/
+│   ├── config/
+│   │   └── database.js
+│   ├── models/
+│   │   ├── Project.js
+│   │   ├── Backer.js
+│   │   └── Mapping.js
+│   ├── routes/
+│   │   ├── auth.js
+│   │   ├── projects.js
+│   │   └── import.js  ← Updated for SKU validation
+│   ├── services/
+│   │   ├── csvParser.js
+│   │   ├── shopify.js
+│   │   ├── s3.js
+│   │   └── logger.js
+│   └── server.js
+├── frontend/
+│   ├── public/
+│   │   ├── index.html
+│   │   ├── manifest.json
+│   │   └── robots.txt
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Dashboard.js  ← Updated for loading states
+│   │   │   ├── ProjectList.js
+│   │   │   ├── CsvUpload.js
+│   │   │   ├── ProductMapping.js
+│   │   │   ├── BackerPreview.js
+│   │   │   ├── ImportReport.js
+│   │   │   └── ProgressBar.js
+│   │   ├── App.js
+│   │   ├── index.js  ← Updated to import custom CSS
+│   │   └── index.css  ← New file for custom styling
+├── package.json
+└── .env
+
+Notes
+
+Custom CSS:The index.css file ensures a responsive, polished UI with minimal overrides.
+Test the app on different screen sizes to verify responsiveness.
+
+SKU Validation:The /validate-skus route checks each SKU against Shopify’s inventory, logging results and displaying invalid SKUs to the user.
+Ensure SKUs in the CSV (e.g., P1-21F-Y) match Shopify’s variant SKUs exactly.
+
+Loading States:The Spinner provides visual feedback during project loading and SKU validation, complementing the ProgressBar.js for CSV parsing and import.
+
+Testing:Test with a sample CSV containing columns like P1-21F-Y Count.
+Verify collapsible rows in BackerPreview.js, SKU validation errors in ProductMapping.js, and loading spinners in Dashboard.js.
+Check logs/error.log and logs/combined.log for debugging.
+
+Deployment:Run npm run build:frontend to generate frontend/build.
+Deploy the backend (e.g., Heroku) and frontend (e.g., Vercel or served via server.js).
+Ensure .env includes all required variables (SHOPIFY_API_KEY, AWS_ACCESS_KEY, etc.).
+Create the logs/ directory for logging.
+
